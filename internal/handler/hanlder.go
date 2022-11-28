@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"mfuss/internal/storage"
@@ -76,14 +75,9 @@ func (h *MyHandler) PostHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	short = strings.TrimSpace(short)
-	js, err := json.Marshal(short)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+
 	w.WriteHeader(http.StatusCreated)
-	w.Write(js)
+	w.Write([]byte(short))
 
 }
 

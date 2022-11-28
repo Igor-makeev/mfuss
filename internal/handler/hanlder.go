@@ -70,7 +70,7 @@ func (h *MyHandler) PostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	short := r.Host + r.URL.Path + h.store.AddURL(string(b))
+	short := "http://" + r.Host + r.URL.Path + h.store.AddURL(string(b))
 
 	if _, err := url.Parse(short); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

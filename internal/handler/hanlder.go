@@ -6,6 +6,7 @@ import (
 	"io"
 	"mfuss/internal/storage"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -69,9 +70,14 @@ func (h *MyHandler) PostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	short := h.store.AddURL(string(b))
-	res := "http://" + r.Host + r.URL.Path + short
-	js, err := json.Marshal(res)
+	short := r.Host + r.URL.Path + h.store.AddURL(string(b))
+
+	if _, err := url.Parse(short); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	js, err := json.Marshal(short)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

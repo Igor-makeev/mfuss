@@ -47,7 +47,7 @@ func (app *App) Run() error {
 	logrus.Print("shortener shuting down.")
 
 	if err := srv.Shutdown(context.Background()); err != nil {
-		logrus.Error("error occured on server shuting down: %s", err.Error())
+		logrus.Errorf("error occured on server shuting down: %s", err.Error())
 	}
 	ctx, shutdown := context.WithTimeout(context.Background(), 5*time.Second)
 	defer shutdown()

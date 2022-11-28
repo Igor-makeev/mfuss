@@ -76,7 +76,7 @@ func (h *MyHandler) PostHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
+	short = strings.TrimSpace(short)
 	js, err := json.Marshal(short)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -98,7 +98,5 @@ func (h *MyHandler) GetURLHandler(w http.ResponseWriter, req *http.Request, id i
 
 	w.Header().Set("Location", sURL.Origin)
 	w.WriteHeader(http.StatusTemporaryRedirect)
-
-	w.Write([]byte(sURL.Result))
 
 }

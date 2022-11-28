@@ -28,15 +28,15 @@ func (app *App) Run() error {
 
 	mux.HandleFunc("/", handler.RootHandler)
 
-	srv := new(server.UrlServer)
+	srv := new(server.URLserver)
 	go func() {
 
 		if err := srv.Run(mux); err != nil {
-			logrus.Fatalf("Failed to listen and serve: %+v", err.Error())
+			logrus.Fatalf("failed to listen and serve: %+v", err.Error())
 		}
 	}()
 
-	logrus.Print("Shortener started...")
+	logrus.Print("shortener started...")
 
 	quit := make(chan os.Signal, 1)
 
@@ -44,7 +44,7 @@ func (app *App) Run() error {
 
 	<-quit
 
-	logrus.Print("Shortener Shuting Down")
+	logrus.Print("shortener shuting down.")
 
 	if err := srv.Shutdown(context.Background()); err != nil {
 		logrus.Error("error occured on server shuting down: %s", err.Error())

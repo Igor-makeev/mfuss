@@ -5,11 +5,11 @@ import (
 	"net/http"
 )
 
-type UrlServer struct {
+type URLserver struct {
 	server *http.Server
 }
 
-func (s *UrlServer) Run(h http.Handler) error {
+func (s *URLserver) Run(h http.Handler) error {
 	s.server = &http.Server{
 		Addr:    ":8080",
 		Handler: h,
@@ -18,6 +18,6 @@ func (s *UrlServer) Run(h http.Handler) error {
 	return s.server.ListenAndServe()
 }
 
-func (s *UrlServer) Shutdown(ctx context.Context) error {
+func (s *URLserver) Shutdown(ctx context.Context) error {
 	return s.server.Shutdown(ctx)
 }

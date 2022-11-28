@@ -7,27 +7,27 @@ import (
 )
 
 type shortURL struct {
-	Id     int
+	ID     int
 	Result string
 	Origin string
 }
 
-type UrlStorage struct {
+type URLStorage struct {
 	sync.Mutex
 	store  map[int]shortURL
-	nextId int
+	nextID int
 }
 
-func NewStorage() *UrlStorage {
-	store := &UrlStorage{
+func NewStorage() *URLStorage {
+	store := &URLStorage{
 		store:  make(map[int]shortURL),
-		nextId: 0,
+		nextID: 0,
 	}
 
 	return store
 }
 
-func (store *UrlStorage) GetShortUrl(id int) (sUrl shortURL, er error) {
+func (store *URLStorage) GetShortURL(id int) (sURL shortURL, er error) {
 	store.Lock()
 	defer store.Unlock()
 
@@ -39,17 +39,17 @@ func (store *UrlStorage) GetShortUrl(id int) (sUrl shortURL, er error) {
 	}
 }
 
-func (store *UrlStorage) AddUrl(input string) string {
+func (store *URLStorage) AddURL(input string) string {
 	store.Lock()
 	defer store.Unlock()
 
 	url := shortURL{
-		Id:     store.nextId,
-		Result: strconv.Itoa(store.nextId),
+		ID:     store.nextID,
+		Result: strconv.Itoa(store.nextID),
 		Origin: input}
 	// TODO написать функцию которая будет сокращать ссылку
 
-	store.store[store.nextId] = url
-	store.nextId++
+	store.store[store.nextID] = url
+	store.nextID++
 	return url.Result
 }

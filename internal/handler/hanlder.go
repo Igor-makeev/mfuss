@@ -13,7 +13,7 @@ import (
 )
 
 type MyHandler struct {
-	store *storage.UrlStorage
+	store *storage.URLStorage
 }
 
 func NewHandler() *MyHandler {
@@ -69,7 +69,7 @@ func (h *MyHandler) PostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	short := h.store.AddUrl(string(b))
+	short := h.store.AddURL(string(b))
 	res := "http://" + r.Host + r.URL.Path + short
 	js, err := json.Marshal(res)
 	if err != nil {
@@ -84,15 +84,15 @@ func (h *MyHandler) PostHandler(w http.ResponseWriter, r *http.Request) {
 func (h *MyHandler) GetURLHandler(w http.ResponseWriter, req *http.Request, id int) {
 	logrus.Printf("handling GetURL at %s\n", req.URL.Path)
 
-	sUrl, err := h.store.GetShortUrl(id)
+	sURL, err := h.store.GetShortURL(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
-	w.Header().Set("Location", sUrl.Origin)
+	w.Header().Set("Location", sURL.Origin)
 	w.WriteHeader(http.StatusTemporaryRedirect)
 
-	w.Write([]byte(sUrl.Result))
+	w.Write([]byte(sURL.Result))
 
 }

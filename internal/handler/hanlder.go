@@ -69,10 +69,17 @@ func (h *MyHandler) PostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	short := "http://" + r.Host + r.URL.Path + h.store.AddURL(string(b))
+	if _, err := url.Parse(string(b)); err != nil {
 
-	if _, err := url.Parse(short); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("invalid URL: %v", string(b)), http.StatusInternalServerError)
+
+		return
+	}
+
+	short := h.store.AddURL(string(b))
+
+	if _, err := url.ParseRequestURI(short); err != nil {
+		http.Error(w, fmt.Sprintf("output data: %v is not url", string(b)), http.StatusInternalServerError)
 		return
 	}
 

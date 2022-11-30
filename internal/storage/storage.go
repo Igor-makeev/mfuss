@@ -18,6 +18,8 @@ type URLStorage struct {
 	nextID int
 }
 
+const key = "http://localhost:8080/"
+
 func NewStorage() *URLStorage {
 	store := &URLStorage{
 		store:  make(map[int]shortURL),
@@ -45,9 +47,8 @@ func (store *URLStorage) AddURL(input string) string {
 
 	url := shortURL{
 		ID:     store.nextID,
-		Result: strconv.Itoa(store.nextID),
+		Result: key + strconv.Itoa(store.nextID),
 		Origin: input}
-	// TODO написать функцию которая будет сокращать ссылку
 
 	store.store[store.nextID] = url
 	store.nextID++

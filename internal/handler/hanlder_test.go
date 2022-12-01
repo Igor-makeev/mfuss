@@ -88,10 +88,11 @@ func TestHandler_GetURLHandler(t *testing.T) {
 		},
 	}
 	res, err := client.Do(req)
+
 	if err != nil {
 		t.Fatal(err)
 	}
-
+	defer res.Body.Close()
 	expectedHeader := "https://kanobu.ru/"
 	result := rr.Result()
 	defer result.Body.Close()

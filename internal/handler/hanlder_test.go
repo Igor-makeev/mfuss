@@ -2,7 +2,7 @@ package handler
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"mfuss/internal/entity"
 	"mfuss/internal/repositories"
 	"net/http"
@@ -50,11 +50,12 @@ func TestHandler_PostHandler(t *testing.T) {
 	rr := httptest.NewRecorder()
 	h := NewHandler(repositories.NewRepository(&StorageMock{store: make(map[int]entity.ShortURL), ID: 0}))
 	h.PostHandler(rr, req)
-	assert.Equal(t, http.StatusCreated, rr.Result().StatusCode, "wrong status code")
 	defer rr.Result().Body.Close()
+	assert.Equal(t, http.StatusCreated, rr.Result().StatusCode, "wrong status code")
+
 	expected := "http://localhost:8080/0"
 	result := rr.Result().Body
-	bodyRes, err := ioutil.ReadAll(result)
+	bodyRes, err := io.ReadAll(result)
 	require.NoError(t, err)
 	assert.Equalf(t, expected, string(bodyRes), "handler returned unexpected body: got %v want %v", string(bodyRes), expected)
 	logrus.Print("body checked")

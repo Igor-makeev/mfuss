@@ -5,7 +5,6 @@ import (
 	"mfuss/internal/handler"
 	"mfuss/internal/repositories"
 	"mfuss/internal/server"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -24,18 +23,14 @@ func NewApp() *App {
 
 func (app *App) Run() error {
 
-	mux := http.NewServeMux()
-
 	storage := repositories.NewMemoryStorage()
 	repository := repositories.NewRepository(storage)
 	handler := handler.NewHandler(repository)
 
-	mux.HandleFunc("/", handler.RootHandler)
-
 	srv := new(server.URLserver)
 	go func() {
 
-		if err := srv.Run(mux); err != nil {
+		if err := srv.Run(handler.InitRoutes()); err != nil {
 			logrus.Fatalf("failed to listen and serve: %+v", err.Error())
 		}
 	}()

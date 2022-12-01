@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sirupsen/logrus"
+	"github.com/gin-gonic/gin"
 	assert "github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -48,8 +48,10 @@ func TestHandler_PostHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 	rr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(rr)
+	c.Request = req
 	h := NewHandler(repositories.NewRepository(&StorageMock{store: make(map[int]entity.ShortURL), ID: 0}))
-	h.PostHandler(rr, req)
+	h.PostHandler(c)
 
 	result := rr.Result()
 	assert.Equal(t, http.StatusCreated, result.StatusCode, "wrong status code")
@@ -59,30 +61,45 @@ func TestHandler_PostHandler(t *testing.T) {
 	bodyRes, err := io.ReadAll(result.Body)
 	require.NoError(t, err)
 	assert.Equalf(t, expected, string(bodyRes), "handler returned unexpected body: got %v want %v", string(bodyRes), expected)
-	logrus.Print("body checked")
+
 	assert.Equalf(t, http.StatusCreated, result.StatusCode, "handler returned wrong status code: got %v want %v", result.StatusCode, http.StatusCreated)
-	logrus.Print("status code checked")
+
 }
 
 func TestHandler_GetURLHandler(t *testing.T) {
+	rr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(rr)
+	h := NewHandler(repositories.NewRepository(&StorageMock{store: make(map[int]entity.ShortURL), ID: 0}))
+	h.repository.URLStorage.SaveURL("https://kanobu.ru/")
 	req, err := http.NewRequest(http.MethodGet, "http://localhost:8080/0", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	rr := httptest.NewRecorder()
-	h := NewHandler(repositories.NewRepository(&StorageMock{store: make(map[int]entity.ShortURL), ID: 0}))
-	h.repository.URLStorage.SaveURL("https://kanobu.ru/")
-	h.GetURLHandler(rr, req, 0)
+
+	c.Request = req
+	c.AddParam("id", "0")
+
+	h.GetURLHandler(c)
+	go http.ListenAndServe(":8080", h.InitRoutes())
+
+	client := http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	expectedHeader := "https://kanobu.ru/"
 	result := rr.Result()
 	defer result.Body.Close()
 	resHeader := result.Header.Get("Location")
 	assert.Equalf(t, expectedHeader, resHeader, "handler return wrong header: got %v want %v", resHeader, expectedHeader)
-	logrus.Print("header checked")
+
 	expectedStatusCode := http.StatusTemporaryRedirect
-	resStatus := result.StatusCode
+	resStatus := res.StatusCode
 	assert.Equalf(t, expectedStatusCode, resStatus, "handler return wrong status code: got %v want %v", resStatus, expectedStatusCode)
-	logrus.Print("status code checked")
 
 }

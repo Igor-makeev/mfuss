@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"mfuss/internal/handler"
+	"mfuss/internal/repositories"
 	"mfuss/internal/server"
 	"net/http"
 	"os"
@@ -24,7 +25,10 @@ func NewApp() *App {
 func (app *App) Run() error {
 
 	mux := http.NewServeMux()
-	handler := handler.NewHandler()
+
+	storage := repositories.NewMemoryStorage()
+	repository := repositories.NewRepository(storage)
+	handler := handler.NewHandler(repository)
 
 	mux.HandleFunc("/", handler.RootHandler)
 

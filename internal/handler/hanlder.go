@@ -3,27 +3,23 @@ package handler
 import (
 	"fmt"
 	"io"
-	"mfuss/internal/storage"
+	"mfuss/internal/repositories"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
-
-	"github.com/sirupsen/logrus"
 )
 
-type MyHandler struct {
-	store *storage.URLStorage
+type Handler struct {
+	repository *repositories.Repositories
 }
 
-func NewHandler() *MyHandler {
-	handler := &MyHandler{
-		store: storage.NewStorage(),
-	}
-	return handler
+func NewHandler(repository *repositories.Repositories) *Handler {
+
+	return &Handler{repository: repository}
 }
 
-func (h *MyHandler) RootHandler(w http.ResponseWriter, req *http.Request) {
+func (h *Handler) RootHandler(w http.ResponseWriter, req *http.Request) {
 	if req.URL.Path == "/" {
 
 		switch req.Method {
@@ -58,9 +54,7 @@ func (h *MyHandler) RootHandler(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (h *MyHandler) PostHandler(w http.ResponseWriter, r *http.Request) {
-
-	logrus.Printf("handling AddURL  %s\n", r.URL.Path)
+func (h *Handler) PostHandler(w http.ResponseWriter, r *http.Request) {
 
 	b, err := io.ReadAll(r.Body)
 
@@ -69,17 +63,17 @@ func (h *MyHandler) PostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := url.Parse(string(b)); err != nil {
+	if _, err := url.ParseRequestURI(string(b)); err != nil {
 
 		http.Error(w, fmt.Sprintf("invalid URL: %v", string(b)), http.StatusInternalServerError)
 
 		return
 	}
 
-	short := h.store.AddURL(string(b))
+	short := "http://" + r.Host + r.URL.Path + h.repository.SaveURL(string(b))
 
 	if _, err := url.ParseRequestURI(short); err != nil {
-		http.Error(w, fmt.Sprintf("output data: %v is not url", string(b)), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("output data: %v is invalid URL", short), http.StatusInternalServerError)
 		return
 	}
 
@@ -88,10 +82,9 @@ func (h *MyHandler) PostHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h *MyHandler) GetURLHandler(w http.ResponseWriter, req *http.Request, id int) {
-	logrus.Printf("handling GetURL at %s\n", req.URL.Path)
+func (h *Handler) GetURLHandler(w http.ResponseWriter, req *http.Request, id int) {
 
-	sURL, err := h.store.GetShortURL(id)
+	sURL, err := h.repository.GetShortURL(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return

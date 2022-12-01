@@ -50,16 +50,17 @@ func TestHandler_PostHandler(t *testing.T) {
 	rr := httptest.NewRecorder()
 	h := NewHandler(repositories.NewRepository(&StorageMock{store: make(map[int]entity.ShortURL), ID: 0}))
 	h.PostHandler(rr, req)
-	defer rr.Result().Body.Close()
-	assert.Equal(t, http.StatusCreated, rr.Result().StatusCode, "wrong status code")
+
+	result := rr.Result()
+	assert.Equal(t, http.StatusCreated, result.StatusCode, "wrong status code")
 
 	expected := "http://localhost:8080/0"
-	result := rr.Result().Body
-	bodyRes, err := io.ReadAll(result)
+	defer result.Body.Close()
+	bodyRes, err := io.ReadAll(result.Body)
 	require.NoError(t, err)
 	assert.Equalf(t, expected, string(bodyRes), "handler returned unexpected body: got %v want %v", string(bodyRes), expected)
 	logrus.Print("body checked")
-	assert.Equalf(t, http.StatusCreated, rr.Result().StatusCode, "handler returned wrong status code: got %v want %v", rr.Result().StatusCode, http.StatusCreated)
+	assert.Equalf(t, http.StatusCreated, result.StatusCode, "handler returned wrong status code: got %v want %v", result.StatusCode, http.StatusCreated)
 	logrus.Print("status code checked")
 }
 

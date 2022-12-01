@@ -73,9 +73,10 @@ func TestHandler_GetURLHandler(t *testing.T) {
 	h := NewHandler(repositories.NewRepository(&StorageMock{store: make(map[int]entity.ShortURL), ID: 0}))
 	h.repository.URLStorage.SaveURL("https://kanobu.ru/")
 	h.GetURLHandler(rr, req, 0)
-	defer rr.Result().Body.Close()
+
 	expectedHeader := "https://kanobu.ru/"
 	result := rr.Result()
+	defer result.Body.Close()
 	resHeader := result.Header.Get("Location")
 	assert.Equalf(t, expectedHeader, resHeader, "handler return wrong header: got %v want %v", resHeader, expectedHeader)
 	logrus.Print("header checked")
@@ -83,4 +84,5 @@ func TestHandler_GetURLHandler(t *testing.T) {
 	resStatus := result.StatusCode
 	assert.Equalf(t, expectedStatusCode, resStatus, "handler return wrong status code: got %v want %v", resStatus, expectedStatusCode)
 	logrus.Print("status code checked")
+
 }

@@ -51,7 +51,7 @@ func TestHandler_PostHandler(t *testing.T) {
 	h := NewHandler(repositories.NewRepository(&StorageMock{store: make(map[int]entity.ShortURL), ID: 0}))
 	h.PostHandler(rr, req)
 	assert.Equal(t, http.StatusCreated, rr.Result().StatusCode, "wrong status code")
-
+	defer rr.Result().Body.Close()
 	expected := "http://localhost:8080/0"
 	result := rr.Result().Body
 	bodyRes, err := ioutil.ReadAll(result)
@@ -71,7 +71,7 @@ func TestHandler_GetURLHandler(t *testing.T) {
 	h := NewHandler(repositories.NewRepository(&StorageMock{store: make(map[int]entity.ShortURL), ID: 0}))
 	h.repository.URLStorage.SaveURL("https://kanobu.ru/")
 	h.GetURLHandler(rr, req, 0)
-
+	defer rr.Result().Body.Close()
 	expectedHeader := "https://kanobu.ru/"
 	result := rr.Result()
 	resHeader := result.Header.Get("Location")

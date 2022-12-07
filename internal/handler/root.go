@@ -26,7 +26,14 @@ func (h *Handler) PostHandler(c *gin.Context) {
 		return
 	}
 
-	short := "http://" + c.Request.Host + c.Request.URL.Path + h.repository.SaveURL(string(b))
+	shortURLId, err := h.repository.SaveURL(string(b))
+
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	short := fmt.Sprintf("http://%v%v%v", c.Request.Host, c.Request.URL.Path, shortURLId)
 
 	if _, err := url.ParseRequestURI(short); err != nil {
 		http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", short), http.StatusInternalServerError)

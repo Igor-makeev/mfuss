@@ -1,23 +1,47 @@
 package main
 
 import (
-	"mfuss/internal/app"
+	"context"
+	"mfuss/internal/handler"
+	"mfuss/internal/repositories"
+	"mfuss/internal/server"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
-/* Напишите сервис для сокращения длинных URL. Требования:
-
-
-
-Сервер должен предоставлять два эндпоинта: POST / и GET /{id}.
-
-Эндпоинт POST / принимает в теле запроса строку URL для сокращения и возвращает ответ с кодом 201 и сокращённым URL в виде текстовой строки в теле.
-
-Эндпоинт GET /{id} принимает в качестве URL-параметра идентификатор сокращённого URL
- и возвращает ответ с кодом 307 и оригинальным URL в HTTP-заголовке Location.
-
-Нужно учесть некорректные запросы и возвращать для них ответ с кодом 400.*/
-
 func main() {
-	app := app.NewApp()
-	app.Run()
+	storage := repositories.NewMemoryStorage()
+	repository := repositories.NewRepository(storage)
+	handler := handler.NewHandler(repository)
+
+	srv := server.NewURLServer(handler.Router)
+
+	go func() {
+
+		if err := srv.ListenAndServe(); err != nil {
+			logrus.Fatalf("failed to listen and serve: %+v", err.Error())
+		}
+	}()
+
+	logrus.Print("shortener started...")
+
+	quit := make(chan os.Signal, 1)
+
+	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
+
+	<-quit
+
+	logrus.Print("shortener shuting down.")
+
+	if err := srv.Shutdown(context.Background()); err != nil {
+		logrus.Errorf("error occured on server shuting down: %s", err.Error())
+	}
+	ctx, shutdown := context.WithTimeout(context.Background(), 5*time.Second)
+	defer shutdown()
+
+	srv.Shutdown(ctx)
 }

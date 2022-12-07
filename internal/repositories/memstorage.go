@@ -34,7 +34,7 @@ func (store *MemoryStorage) GetShortURL(id int) (sURL entity.ShortURL, er error)
 
 }
 
-func (store *MemoryStorage) SaveURL(input string) string {
+func (store *MemoryStorage) SaveURL(input string) (string, error) {
 	store.Lock()
 	defer store.Unlock()
 
@@ -45,5 +45,5 @@ func (store *MemoryStorage) SaveURL(input string) string {
 
 	store.store[store.nextID] = url
 	store.nextID++
-	return url.Result
+	return url.Result, nil
 }

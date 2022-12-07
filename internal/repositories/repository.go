@@ -3,7 +3,7 @@ package repositories
 import "mfuss/internal/entity"
 
 type URLStorage interface {
-	SaveURL(input string) string
+	SaveURL(input string) (string, error)
 	GetShortURL(id int) (sURL entity.ShortURL, er error)
 }
 

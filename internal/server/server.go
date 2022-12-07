@@ -9,12 +9,18 @@ type URLserver struct {
 	server *http.Server
 }
 
-func (s *URLserver) Run(h http.Handler) error {
-	s.server = &http.Server{
-		Addr:    ":8080",
-		Handler: h,
+func NewURLServer(h http.Handler) *URLserver {
+	server := URLserver{
+		server: &http.Server{
+			Addr:    ":8080",
+			Handler: h,
+		},
 	}
 
+	return &server
+}
+
+func (s *URLserver) ListenAndServe() error {
 	return s.server.ListenAndServe()
 }
 

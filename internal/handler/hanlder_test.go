@@ -21,7 +21,7 @@ type StorageMock struct {
 	ID    int
 }
 
-func (store *StorageMock) SaveURL(input string) string {
+func (store *StorageMock) SaveURL(input string) (string, error) {
 	url := entity.ShortURL{
 		ID:     store.ID,
 		Result: strconv.Itoa(store.ID),
@@ -29,7 +29,7 @@ func (store *StorageMock) SaveURL(input string) string {
 
 	store.store[store.ID] = url
 
-	return url.Result
+	return url.Result, nil
 }
 
 func (store *StorageMock) GetShortURL(id int) (sURL entity.ShortURL, er error) {
@@ -80,7 +80,7 @@ func TestHandler_GetURLHandler(t *testing.T) {
 	c.AddParam("id", "0")
 
 	h.GetURLHandler(c)
-	go http.ListenAndServe("127.0.0.1:8080", h.InitRoutes())
+	go http.ListenAndServe("127.0.0.1:8080", h.Router)
 
 	client := http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {

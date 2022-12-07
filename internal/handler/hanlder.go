@@ -8,22 +8,19 @@ import (
 
 type Handler struct {
 	repository *repositories.Repositories
+	Router     *gin.Engine
 }
 
 func NewHandler(repository *repositories.Repositories) *Handler {
-
-	return &Handler{repository: repository}
-}
-
-func (h *Handler) InitRoutes() *gin.Engine {
-
-	router := gin.New()
-
-	root := router.Group("/")
+	handler := &Handler{
+		Router:     gin.New(),
+		repository: repository,
+	}
+	root := handler.Router.Group("/")
 	{
-		root.POST("/", h.PostHandler)
-		root.GET("/:id", h.GetURLHandler)
+		root.POST("/", handler.PostHandler)
+		root.GET("/:id", handler.GetURLHandler)
 	}
 
-	return router
+	return handler
 }

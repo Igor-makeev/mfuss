@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"mfuss/internal/entity"
-	"mfuss/internal/repositories"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -50,7 +49,7 @@ func TestHandler_PostHandler(t *testing.T) {
 	rr := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(rr)
 	c.Request = req
-	h := NewHandler(repositories.NewRepository(&StorageMock{store: make(map[int]entity.ShortURL), ID: 0}))
+	h := NewHandler(&StorageMock{store: make(map[int]entity.ShortURL), ID: 0})
 	h.PostHandler(c)
 
 	result := rr.Result()
@@ -69,8 +68,8 @@ func TestHandler_PostHandler(t *testing.T) {
 func TestHandler_GetURLHandler(t *testing.T) {
 	rr := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(rr)
-	h := NewHandler(repositories.NewRepository(&StorageMock{store: make(map[int]entity.ShortURL), ID: 0}))
-	h.repository.URLStorage.SaveURL("https://kanobu.ru/")
+	h := NewHandler(&StorageMock{store: make(map[int]entity.ShortURL), ID: 0})
+	h.storage.SaveURL("https://kanobu.ru/")
 	req, err := http.NewRequest(http.MethodGet, "http://localhost:8080/0", nil)
 	if err != nil {
 		t.Fatal(err)

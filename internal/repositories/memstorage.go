@@ -14,19 +14,18 @@ type MemoryStorage struct {
 }
 
 func NewMemoryStorage() *MemoryStorage {
-	store := &MemoryStorage{
+	return &MemoryStorage{
 		store:  make(map[int]entity.ShortURL),
 		nextID: 0,
 	}
 
-	return store
 }
 
-func (store *MemoryStorage) GetShortURL(id int) (sURL entity.ShortURL, er error) {
-	store.Lock()
-	defer store.Unlock()
+func (ms *MemoryStorage) GetShortURL(id int) (sURL entity.ShortURL, er error) {
+	ms.Lock()
+	defer ms.Unlock()
 
-	s, ok := store.store[id]
+	s, ok := ms.store[id]
 	if ok {
 		return s, nil
 	}
@@ -34,16 +33,16 @@ func (store *MemoryStorage) GetShortURL(id int) (sURL entity.ShortURL, er error)
 
 }
 
-func (store *MemoryStorage) SaveURL(input string) (string, error) {
-	store.Lock()
-	defer store.Unlock()
+func (ms *MemoryStorage) SaveURL(input string) (string, error) {
+	ms.Lock()
+	defer ms.Unlock()
 
 	url := entity.ShortURL{
-		ID:     store.nextID,
-		Result: strconv.Itoa(store.nextID),
+		ID:     ms.nextID,
+		Result: strconv.Itoa(ms.nextID),
 		Origin: input}
 
-	store.store[store.nextID] = url
-	store.nextID++
+	ms.store[ms.nextID] = url
+	ms.nextID++
 	return url.Result, nil
 }

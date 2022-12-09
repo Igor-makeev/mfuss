@@ -26,7 +26,7 @@ func (h *Handler) PostHandler(c *gin.Context) {
 		return
 	}
 
-	shortURLId, err := h.repository.SaveURL(string(b))
+	shortURLId, err := h.storage.SaveURL(string(b))
 
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
@@ -53,7 +53,7 @@ func (h *Handler) GetURLHandler(c *gin.Context) {
 		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
 	}
 
-	sURL, err := h.repository.GetShortURL(id)
+	sURL, err := h.storage.GetShortURL(id)
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusNotFound)
 		return

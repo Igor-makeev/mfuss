@@ -8,16 +8,13 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/sirupsen/logrus"
 )
 
 func main() {
 	storage := repositories.NewMemoryStorage()
-	repository := repositories.NewRepository(storage)
-	handler := handler.NewHandler(repository)
-
+	handler := handler.NewHandler(storage)
 	srv := server.NewURLServer(handler.Router)
 
 	go func() {
@@ -40,8 +37,5 @@ func main() {
 	if err := srv.Shutdown(context.Background()); err != nil {
 		logrus.Errorf("error occured on server shuting down: %s", err.Error())
 	}
-	ctx, shutdown := context.WithTimeout(context.Background(), 5*time.Second)
-	defer shutdown()
 
-	srv.Shutdown(ctx)
 }

@@ -7,14 +7,14 @@ import (
 )
 
 type Handler struct {
-	repository *repositories.Repositories
-	Router     *gin.Engine
+	storage repositories.URLStorage
+	Router  *gin.Engine
 }
 
-func NewHandler(repository *repositories.Repositories) *Handler {
+func NewHandler(ms repositories.URLStorage) *Handler {
 	handler := &Handler{
-		Router:     gin.New(),
-		repository: repository,
+		Router:  gin.New(),
+		storage: ms,
 	}
 	root := handler.Router.Group("/")
 	{

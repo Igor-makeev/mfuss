@@ -2,26 +2,26 @@ package repositories
 
 import (
 	"fmt"
+	"math/rand"
 	"mfuss/internal/entity"
-	"strconv"
 	"sync"
 )
 
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
 type MemoryStorage struct {
 	sync.Mutex
-	store  map[int]entity.ShortURL
-	nextID int
+	store map[string]entity.ShortURL
 }
 
 func NewMemoryStorage() *MemoryStorage {
 	return &MemoryStorage{
-		store:  make(map[int]entity.ShortURL),
-		nextID: 0,
+		store: make(map[string]entity.ShortURL),
 	}
 
 }
 
-func (ms *MemoryStorage) GetShortURL(id int) (sURL entity.ShortURL, er error) {
+func (ms *MemoryStorage) GetShortURL(id string) (sURL entity.ShortURL, er error) {
 	ms.Lock()
 	defer ms.Unlock()
 
@@ -29,7 +29,7 @@ func (ms *MemoryStorage) GetShortURL(id int) (sURL entity.ShortURL, er error) {
 	if ok {
 		return s, nil
 	}
-	return entity.ShortURL{}, fmt.Errorf("url with id=%d not found", id)
+	return entity.ShortURL{}, fmt.Errorf("url with id=%v not found", id)
 
 }
 
@@ -38,11 +38,19 @@ func (ms *MemoryStorage) SaveURL(input string) (string, error) {
 	defer ms.Unlock()
 
 	url := entity.ShortURL{
-		ID:     ms.nextID,
-		Result: strconv.Itoa(ms.nextID),
+		ID:     genetareID(),
 		Origin: input}
 
-	ms.store[ms.nextID] = url
-	ms.nextID++
-	return url.Result, nil
+	ms.store[url.ID] = url
+
+	return url.ID, nil
+}
+
+func genetareID() string {
+	buf := make([]byte, 5)
+	for i := range buf {
+		buf[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+	res := string(buf)
+	return res
 }

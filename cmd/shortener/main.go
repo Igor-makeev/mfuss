@@ -14,7 +14,9 @@ import (
 
 func main() {
 	storage := repositories.NewMemoryStorage()
+
 	handler := handler.NewHandler(storage)
+
 	srv := server.NewURLServer(handler.Router)
 
 	go func() {

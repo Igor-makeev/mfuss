@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -47,11 +46,7 @@ func (h *Handler) PostHandler(c *gin.Context) {
 
 func (h *Handler) GetURLHandler(c *gin.Context) {
 
-	id, err := strconv.Atoi(c.Param("id"))
-
-	if err != nil {
-		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
-	}
+	id := c.Param("id")
 
 	sURL, err := h.storage.GetShortURL(id)
 	if err != nil {

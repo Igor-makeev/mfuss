@@ -2,6 +2,7 @@ package handler
 
 import (
 	"io"
+	"mfuss/configs"
 	"mfuss/internal/entity"
 	mock "mfuss/internal/mock"
 	"net/http"
@@ -27,7 +28,8 @@ func TestHandler_PostJSONHandler(t *testing.T) {
 	c, _ := gin.CreateTestContext(rr)
 	c.Request = req
 	store := mock.NewStorageMock()
-	h := NewHandler(store)
+	cfg := configs.Config{SrvAddr: "localhost:8080", BaseURL: "localhost:8080"}
+	h := NewHandler(store, cfg)
 	h.PostJSONHandler(c)
 
 	result := rr.Result()

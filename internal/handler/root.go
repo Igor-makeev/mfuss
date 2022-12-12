@@ -11,28 +11,28 @@ import (
 
 func (h *Handler) PostHandler(c *gin.Context) {
 
-	b, err := io.ReadAll(c.Request.Body)
+	body, err := io.ReadAll(c.Request.Body)
 
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if _, err := url.ParseRequestURI(string(b)); err != nil {
+	if _, err := url.ParseRequestURI(string(body)); err != nil {
 
-		http.Error(c.Writer, fmt.Sprintf("invalid URL: %v", string(b)), http.StatusInternalServerError)
+		http.Error(c.Writer, fmt.Sprintf("invalid URL: %v", string(body)), http.StatusInternalServerError)
 
 		return
 	}
 
-	shortURLId, err := h.storage.SaveURL(string(b))
+	shortURLId, err := h.storage.SaveURL(string(body))
 
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	short := fmt.Sprintf("http://%v/%v", c.Request.Host, shortURLId)
+	short := fmt.Sprintf("http://%v/%v", h.cfg.BaseURL, shortURLId)
 
 	if _, err := url.ParseRequestURI(short); err != nil {
 		http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", short), http.StatusInternalServerError)

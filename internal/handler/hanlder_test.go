@@ -2,6 +2,7 @@ package handler
 
 import (
 	"io"
+	"mfuss/configs"
 	mock "mfuss/internal/mock"
 	"net/http"
 	"net/http/httptest"
@@ -23,7 +24,8 @@ func TestHandler_PostHandler(t *testing.T) {
 	c, _ := gin.CreateTestContext(rr)
 	c.Request = req
 	store := mock.NewStorageMock()
-	h := NewHandler(store)
+	cfg := configs.Config{SrvAddr: "localhost:8080", BaseURL: "localhost:8080"}
+	h := NewHandler(store, cfg)
 	h.PostHandler(c)
 
 	result := rr.Result()
@@ -43,7 +45,8 @@ func TestHandler_GetURLHandler(t *testing.T) {
 	rr := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(rr)
 	store := mock.NewStorageMock()
-	h := NewHandler(store)
+	cfg := configs.Config{SrvAddr: "localhost:8080", BaseURL: "localhost:8080"}
+	h := NewHandler(store, cfg)
 	h.storage.SaveURL("https://kanobu.ru/")
 	req, err := http.NewRequest(http.MethodGet, "http://localhost:8080/0", nil)
 	if err != nil {

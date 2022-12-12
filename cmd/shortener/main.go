@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"log"
+	"mfuss/configs"
 	"mfuss/internal/handler"
 	"mfuss/internal/repositories"
 	"mfuss/internal/server"
@@ -9,15 +11,23 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/caarlos0/env"
 	"github.com/sirupsen/logrus"
 )
 
 func main() {
+
+	var cfg configs.Config
+	err := env.Parse(&cfg)
+	if err != nil {
+		log.Fatal("failed to parse config environment variables")
+	}
+
 	storage := repositories.NewMemoryStorage()
 
-	handler := handler.NewHandler(storage)
+	handler := handler.NewHandler(storage, cfg)
 
-	srv := server.NewURLServer(handler.Router)
+	srv := server.NewURLServer(handler.Router, cfg)
 
 	go func() {
 

@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"mfuss/internal/entity"
 	"net/http"
@@ -12,8 +14,14 @@ import (
 func (h *Handler) PostJSONHandler(c *gin.Context) {
 
 	var input entity.URLInput
-	if err := c.BindJSON(&input); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+	buf := new(bytes.Buffer)
+
+	if err := json.NewEncoder(buf).Encode(c.Request.Body); err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if err := json.NewDecoder(buf).Decode(&input); err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
 		return
 	}
 

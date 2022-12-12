@@ -28,7 +28,7 @@ func TestHandler_PostJSONHandler(t *testing.T) {
 	c, _ := gin.CreateTestContext(rr)
 	c.Request = req
 	store := mock.NewStorageMock()
-	cfg := configs.Config{SrvAddr: "localhost:8080", BaseURL: "localhost:8080"}
+	cfg := configs.Config{SrvAddr: "localhost:8080", BaseURL: "http://localhost:8080"}
 	h := NewHandler(store, cfg)
 	h.PostJSONHandler(c)
 

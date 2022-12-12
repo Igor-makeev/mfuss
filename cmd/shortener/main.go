@@ -27,7 +27,7 @@ func main() {
 
 	handler := handler.NewHandler(storage, cfg)
 
-	srv := server.NewURLServer(handler.Router, cfg)
+	srv := server.NewURLServer(handler)
 
 	go func() {
 

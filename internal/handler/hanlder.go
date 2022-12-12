@@ -10,14 +10,14 @@ import (
 type Handler struct {
 	storage repositories.URLStorage
 	Router  *gin.Engine
-	cfg     configs.Config
+	Cfg     configs.Config
 }
 
 func NewHandler(ms repositories.URLStorage, cfg configs.Config) *Handler {
 	handler := &Handler{
 		Router:  gin.New(),
 		storage: ms,
-		cfg:     cfg,
+		Cfg:     cfg,
 	}
 
 	root := handler.Router.Group("/")

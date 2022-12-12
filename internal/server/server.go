@@ -1,14 +1,14 @@
 package server
 
 import (
-	"mfuss/configs"
+	"mfuss/internal/handler"
 	"net/http"
 )
 
-func NewURLServer(h http.Handler, cfg configs.Config) *http.Server {
+func NewURLServer(h *handler.Handler) *http.Server {
 	return &http.Server{
-		Addr:    cfg.SrvAddr,
-		Handler: h,
+		Addr:    h.Cfg.SrvAddr,
+		Handler: h.Router,
 	}
 
 }

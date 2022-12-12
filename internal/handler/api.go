@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"mfuss/internal/entity"
 	"net/http"
 	"net/url"
@@ -16,13 +17,18 @@ func (h *Handler) PostJSONHandler(c *gin.Context) {
 	var input entity.URLInput
 	buf := new(bytes.Buffer)
 
-	if err := json.NewEncoder(buf).Encode(c.Request.Body); err != nil {
+	if err := json.NewEncoder(buf).Encode(c.BindJSON(&input)); err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if err := json.NewDecoder(buf).Decode(&input); err != nil {
-		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
-		return
+
+	for {
+		if err := json.NewDecoder(buf).Decode(&input); err == io.EOF {
+			break
+		} else if err != nil {
+			http.Error(c.Writer, err.Error(), http.StatusBadRequest)
+			return
+		}
 	}
 
 	shortURLId, err := h.storage.SaveURL(input.URL)

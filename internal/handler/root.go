@@ -32,7 +32,7 @@ func (h *Handler) PostHandler(c *gin.Context) {
 		return
 	}
 
-	short := fmt.Sprintf("http://%v%v%v", c.Request.Host, c.Request.URL.Path, shortURLId)
+	short := fmt.Sprintf("http://%v/%v", c.Request.Host, shortURLId)
 
 	if _, err := url.ParseRequestURI(short); err != nil {
 		http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", short), http.StatusInternalServerError)

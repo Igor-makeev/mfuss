@@ -20,6 +20,12 @@ func NewHandler(ms repositories.URLStorage) *Handler {
 	{
 		root.POST("/", handler.PostHandler)
 		root.GET("/:id", handler.GetURLHandler)
+
+	}
+
+	api := handler.Router.Group("/api")
+	{
+		api.POST("/shorten", handler.PostJSONHandler)
 	}
 
 	return handler

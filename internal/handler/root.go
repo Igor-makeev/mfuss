@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,11 +18,10 @@ func (h *Handler) PostHandler(c *gin.Context) {
 		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	body = []byte(strings.Trim(string(body), "\n"))
 
 	if _, err := url.ParseRequestURI(string(body)); err != nil {
-
-		http.Error(c.Writer, fmt.Sprintf("invalid URL: %v", string(body)), http.StatusInternalServerError)
-
+		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

@@ -5,6 +5,7 @@ import (
 	"mfuss/configs"
 	"mfuss/internal/entity"
 	mock "mfuss/internal/mock"
+	"mfuss/internal/repositories"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -17,7 +18,14 @@ import (
 )
 
 func TestHandler_PostJSONHandler(t *testing.T) {
-
+	cfg := configs.Config{SrvAddr: "localhost:8080", BaseURL: "http://localhost:8080"}
+	store := mock.NewStorageMock()
+	pstore := mock.NewPersistentStorageMock()
+	rep := &repositories.Repository{
+		URLStorage:        store,
+		PersistentStorage: pstore,
+		Config:            cfg,
+	}
 	exampleReq := entity.URLInput{URL: "https://kanobu.ru/"}
 	body, _ := json.Marshal(exampleReq)
 	req, err := http.NewRequest(http.MethodPost, "http://localhost:8080/api/shorten", strings.NewReader(string(body)))
@@ -27,9 +35,8 @@ func TestHandler_PostJSONHandler(t *testing.T) {
 	rr := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(rr)
 	c.Request = req
-	store := mock.NewStorageMock()
-	cfg := configs.Config{SrvAddr: "localhost:8080", BaseURL: "http://localhost:8080"}
-	h := NewHandler(store, cfg)
+
+	h := NewHandler(rep)
 	h.PostJSONHandler(c)
 
 	result := rr.Result()

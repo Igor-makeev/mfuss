@@ -1,23 +1,20 @@
 package handler
 
 import (
-	"mfuss/configs"
 	"mfuss/internal/repositories"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Handler struct {
-	storage repositories.URLStorage
-	Router  *gin.Engine
-	Cfg     configs.Config
+	Repo   *repositories.Repository
+	Router *gin.Engine
 }
 
-func NewHandler(ms repositories.URLStorage, cfg configs.Config) *Handler {
+func NewHandler(rep *repositories.Repository) *Handler {
 	handler := &Handler{
-		Router:  gin.New(),
-		storage: ms,
-		Cfg:     cfg,
+		Router: gin.New(),
+		Repo:   rep,
 	}
 
 	root := handler.Router.Group("/")

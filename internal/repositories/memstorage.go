@@ -11,12 +11,13 @@ const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 type MemoryStorage struct {
 	sync.Mutex
-	store map[string]entity.ShortURL
+	Store map[string]entity.ShortURL
+	PersistentStorage
 }
 
 func NewMemoryStorage() *MemoryStorage {
 	return &MemoryStorage{
-		store: make(map[string]entity.ShortURL),
+		Store: make(map[string]entity.ShortURL),
 	}
 
 }
@@ -25,7 +26,7 @@ func (ms *MemoryStorage) GetShortURL(id string) (sURL entity.ShortURL, er error)
 	ms.Lock()
 	defer ms.Unlock()
 
-	s, ok := ms.store[id]
+	s, ok := ms.Store[id]
 	if ok {
 		return s, nil
 	}
@@ -41,7 +42,7 @@ func (ms *MemoryStorage) SaveURL(input string) (string, error) {
 		ID:     genetareID(),
 		Origin: input}
 
-	ms.store[url.ID] = url
+	ms.Store[url.ID] = url
 
 	return url.ID, nil
 }

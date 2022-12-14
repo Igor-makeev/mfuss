@@ -31,13 +31,13 @@ func (h *Handler) PostJSONHandler(c *gin.Context) {
 		}
 	}
 
-	shortURLId, err := h.storage.SaveURL(input.URL)
+	shortURLId, err := h.Repo.URLStorage.SaveURL(input.URL)
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	short := fmt.Sprintf("%v/%v", h.Cfg.BaseURL, shortURLId)
+	short := fmt.Sprintf("%v/%v", h.Repo.Config.BaseURL, shortURLId)
 
 	if _, err := url.ParseRequestURI(short); err != nil {
 		http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", short), http.StatusInternalServerError)

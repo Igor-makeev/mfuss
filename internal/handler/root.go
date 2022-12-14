@@ -25,14 +25,14 @@ func (h *Handler) PostHandler(c *gin.Context) {
 		return
 	}
 
-	shortURLId, err := h.storage.SaveURL(string(body))
+	shortURLId, err := h.Repo.URLStorage.SaveURL(string(body))
 
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	short := fmt.Sprintf("%v/%v", h.Cfg.BaseURL, shortURLId)
+	short := fmt.Sprintf("%v/%v", h.Repo.Config.BaseURL, shortURLId)
 
 	if _, err := url.ParseRequestURI(short); err != nil {
 		http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", short), http.StatusInternalServerError)
@@ -48,7 +48,7 @@ func (h *Handler) GetURLHandler(c *gin.Context) {
 
 	id := c.Param("id")
 
-	sURL, err := h.storage.GetShortURL(id)
+	sURL, err := h.Repo.URLStorage.GetShortURL(id)
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusNotFound)
 		return

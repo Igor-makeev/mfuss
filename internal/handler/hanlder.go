@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"compress/gzip"
 	"mfuss/internal/repositories"
 
 	"github.com/gin-gonic/gin"
@@ -19,14 +20,15 @@ func NewHandler(rep *repositories.Repository) *Handler {
 
 	root := handler.Router.Group("/")
 	{
-		root.POST("/", handler.PostHandler)
-		root.GET("/:id", handler.GetURLHandler)
+
+		root.POST("/", GzipUnpack(), handler.PostHandler)
+		root.GET("/:id", GzipCompress(gzip.DefaultCompression), handler.GetURLHandler)
 
 	}
 
 	api := handler.Router.Group("/api")
 	{
-		api.POST("/shorten", handler.PostJSONHandler)
+		api.POST("/shorten", GzipUnpack(), handler.PostJSONHandler)
 	}
 
 	return handler

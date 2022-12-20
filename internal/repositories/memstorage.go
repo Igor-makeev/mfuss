@@ -3,6 +3,7 @@ package repositories
 import (
 	"fmt"
 	"math/rand"
+	"mfuss/configs"
 	"mfuss/internal/entity"
 	"sync"
 )
@@ -15,10 +16,22 @@ type MemoryStorage struct {
 	PersistentStorage
 }
 
-func NewMemoryStorage() *MemoryStorage {
-	return &MemoryStorage{
-		Store: make(map[string]entity.ShortURL),
+func NewMemoryStorage(cfg *configs.Config) (*MemoryStorage, error) {
+
+	ps, err := NewFileStorage(cfg.FileStoragePath)
+	if err != nil {
+		return nil, err
 	}
+	ms := &MemoryStorage{
+		Store:             make(map[string]entity.ShortURL),
+		PersistentStorage: ps,
+	}
+
+	if err := ps.LoadData(ms.Store); err != nil {
+		return nil, err
+	}
+
+	return ms, err
 
 }
 
@@ -54,4 +67,16 @@ func genetareID() string {
 	}
 	res := string(buf)
 	return res
+}
+
+func (ms *MemoryStorage) Close() error {
+
+	if err := ms.PersistentStorage.SaveData(ms.Store); err != nil {
+		return err
+	}
+
+	if err := ms.PersistentStorage.Close(); err != nil {
+		return err
+	}
+	return nil
 }

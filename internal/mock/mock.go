@@ -32,6 +32,9 @@ func (store *StorageMock) GetShortURL(id string) (sURL entity.ShortURL, er error
 	return entity.ShortURL{}, fmt.Errorf("url with id=%v not found", id)
 
 }
+func (store *StorageMock) Close() error {
+	return nil
+}
 
 type PersistentStorageMock struct {
 }
@@ -47,5 +50,9 @@ func (psm *PersistentStorageMock) SaveData(ms map[string]entity.ShortURL) error 
 }
 
 func (psm *PersistentStorageMock) LoadData(ms map[string]entity.ShortURL) error {
+	return nil
+}
+
+func (psm *PersistentStorageMock) Close() error {
 	return nil
 }

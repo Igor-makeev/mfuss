@@ -20,11 +20,10 @@ import (
 func TestHandler_PostJSONHandler(t *testing.T) {
 	cfg := configs.Config{SrvAddr: "localhost:8080", BaseURL: "http://localhost:8080"}
 	store := mock.NewStorageMock()
-	pstore := mock.NewPersistentStorageMock()
+
 	rep := &repositories.Repository{
-		URLStorage:        store,
-		PersistentStorage: pstore,
-		Config:            cfg,
+		URLStorage: store,
+		Config:     cfg,
 	}
 	exampleReq := entity.URLInput{URL: "https://kanobu.ru/"}
 	body, _ := json.Marshal(exampleReq)

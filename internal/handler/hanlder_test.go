@@ -18,11 +18,10 @@ import (
 func TestHandler_PostHandler(t *testing.T) {
 	cfg := configs.Config{SrvAddr: "localhost:8080", BaseURL: "http://localhost:8080"}
 	store := mock.NewStorageMock()
-	pstore := mock.NewPersistentStorageMock()
 	rep := &repositories.Repository{
-		URLStorage:        store,
-		PersistentStorage: pstore,
-		Config:            cfg,
+		URLStorage: store,
+
+		Config: cfg,
 	}
 	req, err := http.NewRequest(http.MethodPost, "http://localhost:8080/", strings.NewReader("https://kanobu.ru/"))
 	if err != nil {
@@ -51,11 +50,9 @@ func TestHandler_PostHandler(t *testing.T) {
 func TestHandler_GetURLHandler(t *testing.T) {
 	cfg := configs.Config{SrvAddr: "localhost:8080", BaseURL: "http://localhost:8080"}
 	store := mock.NewStorageMock()
-	pstore := mock.NewPersistentStorageMock()
 	rep := &repositories.Repository{
-		URLStorage:        store,
-		PersistentStorage: pstore,
-		Config:            cfg,
+		URLStorage: store,
+		Config:     cfg,
 	}
 	rr := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(rr)

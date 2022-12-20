@@ -1,13 +1,14 @@
 package server
 
 import (
+	"mfuss/internal/handler"
 	"net/http"
 )
 
-func NewURLServer(h http.Handler) *http.Server {
+func NewURLServer(h *handler.Handler) *http.Server {
 	return &http.Server{
-		Addr:    ":8080",
-		Handler: h,
+		Addr:    h.Repo.Config.SrvAddr,
+		Handler: h.Router,
 	}
 
 }

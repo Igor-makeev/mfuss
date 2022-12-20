@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"mfuss/configs"
 	"mfuss/internal/handler"
 	"mfuss/internal/repositories"
 	"mfuss/internal/server"
@@ -13,11 +14,21 @@ import (
 )
 
 func main() {
-	storage := repositories.NewMemoryStorage()
 
-	handler := handler.NewHandler(storage)
+	cfg := configs.NewConfig()
 
-	srv := server.NewURLServer(handler.Router)
+	logrus.Printf("env variable SERVER_ADDRESS=%v", cfg.SrvAddr)
+	logrus.Printf("env variable BASE_URL=%v", cfg.BaseURL)
+	logrus.Printf("env variable FILE_STORAGE_PATH=%v", cfg.FileStoragePath)
+
+	rep, err := repositories.NewRepository(cfg)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	handler := handler.NewHandler(rep)
+
+	srv := server.NewURLServer(handler)
 
 	go func() {
 
@@ -36,6 +47,9 @@ func main() {
 
 	logrus.Print("shortener shuting down.")
 
+	if rep.Close(); err != nil {
+		logrus.Errorf("error occured on closing storage: %s", err.Error())
+	}
 	if err := srv.Shutdown(context.Background()); err != nil {
 		logrus.Errorf("error occured on server shuting down: %s", err.Error())
 	}

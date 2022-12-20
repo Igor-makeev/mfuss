@@ -1,9 +1,10 @@
 package handler
 
 import (
-	"fmt"
 	"io"
-	"mfuss/internal/entity"
+	"mfuss/configs"
+	mock "mfuss/internal/mock"
+	"mfuss/internal/repositories"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -14,32 +15,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type StorageMock struct {
-	store map[string]entity.ShortURL
-	ID    string
-}
-
-func (store *StorageMock) SaveURL(input string) (string, error) {
-	url := entity.ShortURL{
-		ID:     store.ID,
-		Origin: input}
-
-	store.store[store.ID] = url
-
-	return url.ID, nil
-}
-
-func (store *StorageMock) GetShortURL(id string) (sURL entity.ShortURL, er error) {
-	s, ok := store.store[id]
-	if ok {
-		return s, nil
-	}
-	return entity.ShortURL{}, fmt.Errorf("url with id=%v not found", id)
-
-}
-
 func TestHandler_PostHandler(t *testing.T) {
+	cfg := configs.Config{SrvAddr: "localhost:8080", BaseURL: "http://localhost:8080"}
+	store := mock.NewStorageMock()
+	rep := &repositories.Repository{
+		URLStorage: store,
 
+		Config: cfg,
+	}
 	req, err := http.NewRequest(http.MethodPost, "http://localhost:8080/", strings.NewReader("https://kanobu.ru/"))
 	if err != nil {
 		t.Fatal(err)
@@ -47,7 +30,8 @@ func TestHandler_PostHandler(t *testing.T) {
 	rr := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(rr)
 	c.Request = req
-	h := NewHandler(&StorageMock{store: make(map[string]entity.ShortURL), ID: "0"})
+
+	h := NewHandler(rep)
 	h.PostHandler(c)
 
 	result := rr.Result()
@@ -64,10 +48,17 @@ func TestHandler_PostHandler(t *testing.T) {
 }
 
 func TestHandler_GetURLHandler(t *testing.T) {
+	cfg := configs.Config{SrvAddr: "localhost:8080", BaseURL: "http://localhost:8080"}
+	store := mock.NewStorageMock()
+	rep := &repositories.Repository{
+		URLStorage: store,
+		Config:     cfg,
+	}
 	rr := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(rr)
-	h := NewHandler(&StorageMock{store: make(map[string]entity.ShortURL), ID: "0"})
-	h.storage.SaveURL("https://kanobu.ru/")
+
+	h := NewHandler(rep)
+	h.Repo.URLStorage.SaveURL("https://kanobu.ru/")
 	req, err := http.NewRequest(http.MethodGet, "http://localhost:8080/0", nil)
 	if err != nil {
 		t.Fatal(err)

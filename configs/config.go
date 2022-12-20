@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/caarlos0/env"
+	"github.com/sirupsen/logrus"
 )
 
 type Config struct {
@@ -26,6 +27,10 @@ func NewConfig() *Config {
 	if err != nil {
 		log.Fatal("failed to parse config environment variables")
 	}
+
+	logrus.Printf("env variable SERVER_ADDRESS=%v", cfg.SrvAddr)
+	logrus.Printf("env variable BASE_URL=%v", cfg.BaseURL)
+	logrus.Printf("env variable FILE_STORAGE_PATH=%v", cfg.FileStoragePath)
 
 	return &cfg
 }

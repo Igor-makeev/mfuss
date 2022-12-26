@@ -134,7 +134,7 @@ func checkCook(id string) bool {
 	return isvalid
 }
 
-func getUserId(c *gin.Context) (string, error) {
+func getUserID(c *gin.Context) (string, error) {
 	id, ok := c.Get(userCtx)
 
 	if !ok {

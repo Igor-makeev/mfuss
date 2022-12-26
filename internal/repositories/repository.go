@@ -6,9 +6,9 @@ import (
 )
 
 type URLStorage interface {
-	SaveURL(input, userId string) (string, error)
-	GetAllURLS(userId string) []entity.ShortURL
-	GetShortURL(id, userId string) (sURL entity.ShortURL, er error)
+	SaveURL(input, userID string) (string, error)
+	GetAllURLS(userID string) []entity.ShortURL
+	GetShortURL(id, userID string) (sURL entity.ShortURL, er error)
 	Close() error
 }
 

@@ -11,7 +11,7 @@ import (
 )
 
 func (h *Handler) PostHandler(c *gin.Context) {
-	userId, err := getUserId(c)
+	userID, err := getUserID(c)
 	if err != nil {
 		return
 	}
@@ -29,7 +29,7 @@ func (h *Handler) PostHandler(c *gin.Context) {
 		return
 	}
 
-	shortURLId, err := h.Repo.URLStorage.SaveURL(string(body), userId)
+	shortURLId, err := h.Repo.URLStorage.SaveURL(string(body), userID)
 
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
@@ -49,14 +49,14 @@ func (h *Handler) PostHandler(c *gin.Context) {
 }
 
 func (h *Handler) GetURLHandler(c *gin.Context) {
-	userId, err := getUserId(c)
+	userID, err := getUserID(c)
 	if err != nil {
 		return
 	}
 
 	id := c.Param("id")
 
-	sURL, err := h.Repo.URLStorage.GetShortURL(id, userId)
+	sURL, err := h.Repo.URLStorage.GetShortURL(id, userID)
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusNotFound)
 		return

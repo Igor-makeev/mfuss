@@ -13,7 +13,7 @@ import (
 )
 
 func (h *Handler) PostJSONHandler(c *gin.Context) {
-	userId, err := getUserId(c)
+	userID, err := getUserID(c)
 	if err != nil {
 		return
 	}
@@ -33,7 +33,7 @@ func (h *Handler) PostJSONHandler(c *gin.Context) {
 		return
 	}
 
-	shortURLId, err := h.Repo.URLStorage.SaveURL(input.URL, userId)
+	shortURLId, err := h.Repo.URLStorage.SaveURL(input.URL, userID)
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 		return

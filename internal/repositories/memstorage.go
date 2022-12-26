@@ -40,24 +40,24 @@ func NewMemoryStorage(cfg *configs.Config) (*MemoryStorage, error) {
 	return ms, err
 
 }
-func (ms *MemoryStorage) GetAllURLS(userId string) []entity.ShortURL {
+func (ms *MemoryStorage) GetAllURLS(userID string) []entity.ShortURL {
 	ms.Lock()
 	defer ms.Unlock()
 	var urls []entity.ShortURL
 	for _, v := range ms.URLStore {
-		if v.UserID == userId {
+		if v.UserID == userID {
 			urls = append(urls, v)
 		}
 	}
 	return urls
 }
 
-func (ms *MemoryStorage) GetShortURL(id, uId string) (sURL entity.ShortURL, er error) {
+func (ms *MemoryStorage) GetShortURL(id, userID string) (sURL entity.ShortURL, er error) {
 	ms.Lock()
 	defer ms.Unlock()
 
 	s, ok := ms.URLStore[id]
-	if ok && ms.URLStore[id].UserID == uId {
+	if ok && ms.URLStore[id].UserID == userID {
 
 		return s, nil
 	}
@@ -65,14 +65,14 @@ func (ms *MemoryStorage) GetShortURL(id, uId string) (sURL entity.ShortURL, er e
 
 }
 
-func (ms *MemoryStorage) SaveURL(input, userId string) (string, error) {
+func (ms *MemoryStorage) SaveURL(input, userID string) (string, error) {
 	ms.Lock()
 	defer ms.Unlock()
 
 	url := entity.ShortURL{
 		ID:     genetareID(),
 		Origin: input,
-		UserID: userId,
+		UserID: userID,
 	}
 
 	ms.URLStore[url.ID] = url

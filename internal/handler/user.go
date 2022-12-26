@@ -7,12 +7,12 @@ import (
 )
 
 func (h *Handler) GetUSERURLS(c *gin.Context) {
-	userId, err := getUserId(c)
+	userID, err := getUserID(c)
 	if err != nil {
 		return
 	}
 
-	urls := h.Repo.GetAllURLS(userId)
+	urls := h.Repo.GetAllURLS(userID)
 	for i, v := range urls {
 		urls[i].ResultURL = h.Repo.Config.BaseURL + "/" + v.ID
 	}

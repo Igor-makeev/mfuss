@@ -23,11 +23,11 @@ func (store *StorageMock) SaveURL(input, userid string) (string, error) {
 
 	return url.ID, nil
 }
-func (store *StorageMock) GetAllURLS(userId string) []entity.ShortURL {
+func (store *StorageMock) GetAllURLS(userID string) []entity.ShortURL {
 
 	var urls []entity.ShortURL
 	for _, v := range store.store {
-		if v.UserID == userId {
+		if v.UserID == userID {
 			urls = append(urls, v)
 		}
 	}

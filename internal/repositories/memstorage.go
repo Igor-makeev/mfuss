@@ -57,7 +57,7 @@ func (ms *MemoryStorage) GetShortURL(id, userID string) (sURL entity.ShortURL, e
 	defer ms.Unlock()
 
 	s, ok := ms.URLStore[id]
-	if ok && ms.URLStore[id].UserID == userID {
+	if ok {
 
 		return s, nil
 	}

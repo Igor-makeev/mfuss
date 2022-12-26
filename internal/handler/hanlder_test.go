@@ -30,10 +30,10 @@ func TestHandler_PostHandler(t *testing.T) {
 	rr := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(rr)
 	c.Request = req
-
+	c.Set("userID", "test")
 	h := NewHandler(rep)
-	h.PostHandler(c)
 
+	h.PostHandler(c)
 	result := rr.Result()
 	assert.Equal(t, http.StatusCreated, result.StatusCode, "wrong status code")
 
@@ -56,9 +56,9 @@ func TestHandler_GetURLHandler(t *testing.T) {
 	}
 	rr := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(rr)
-
+	c.Set("userID", "test")
 	h := NewHandler(rep)
-	h.Repo.URLStorage.SaveURL("https://kanobu.ru/")
+	h.Repo.URLStorage.SaveURL("https://kanobu.ru/", "")
 	req, err := http.NewRequest(http.MethodGet, "http://localhost:8080/0", nil)
 	if err != nil {
 		t.Fatal(err)

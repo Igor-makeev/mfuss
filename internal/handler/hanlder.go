@@ -18,17 +18,18 @@ func NewHandler(rep *repositories.Repository) *Handler {
 		Repo:   rep,
 	}
 
-	root := handler.Router.Group("/")
+	root := handler.Router.Group("/", UserCheck())
 	{
 
 		root.POST("/", GzipUnpack(), handler.PostHandler)
 		root.GET("/:id", GzipCompress(gzip.DefaultCompression), handler.GetURLHandler)
 
-	}
+		api := handler.Router.Group("api", UserCheck())
+		{
 
-	api := handler.Router.Group("/api")
-	{
-		api.POST("/shorten", GzipUnpack(), handler.PostJSONHandler)
+			api.POST("/shorten", GzipUnpack(), handler.PostJSONHandler)
+			api.GET("/user/urls", handler.GetUSERURLS)
+		}
 	}
 
 	return handler

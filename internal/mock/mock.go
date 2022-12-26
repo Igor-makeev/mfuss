@@ -14,7 +14,7 @@ func NewStorageMock() *StorageMock {
 	return &StorageMock{store: make(map[string]entity.ShortURL), ID: "0"}
 }
 
-func (store *StorageMock) SaveURL(input string) (string, error) {
+func (store *StorageMock) SaveURL(input, userid string) (string, error) {
 	url := entity.ShortURL{
 		ID:     store.ID,
 		Origin: input}
@@ -23,8 +23,18 @@ func (store *StorageMock) SaveURL(input string) (string, error) {
 
 	return url.ID, nil
 }
+func (store *StorageMock) GetAllURLS(userId string) []entity.ShortURL {
 
-func (store *StorageMock) GetShortURL(id string) (sURL entity.ShortURL, er error) {
+	var urls []entity.ShortURL
+	for _, v := range store.store {
+		if v.UserID == userId {
+			urls = append(urls, v)
+		}
+	}
+	return urls
+}
+
+func (store *StorageMock) GetShortURL(id, idstring string) (sURL entity.ShortURL, er error) {
 	s, ok := store.store[id]
 	if ok {
 		return s, nil

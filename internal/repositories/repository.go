@@ -6,14 +6,9 @@ import (
 )
 
 type URLStorage interface {
-	SaveURL(input string) (string, error)
-	GetShortURL(id string) (sURL entity.ShortURL, er error)
-	Close() error
-}
-
-type PersistentStorage interface {
-	SaveData(ms map[string]entity.ShortURL) error
-	LoadData(ms map[string]entity.ShortURL) error
+	SaveURL(input, userId string) (string, error)
+	GetAllURLS(userId string) []entity.ShortURL
+	GetShortURL(id, userId string) (sURL entity.ShortURL, er error)
 	Close() error
 }
 

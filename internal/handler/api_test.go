@@ -34,7 +34,7 @@ func TestHandler_PostJSONHandler(t *testing.T) {
 	rr := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(rr)
 	c.Request = req
-
+	c.Set("userID", "test")
 	h := NewHandler(rep)
 	h.PostJSONHandler(c)
 

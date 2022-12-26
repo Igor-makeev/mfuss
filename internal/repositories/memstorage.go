@@ -10,9 +10,15 @@ import (
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
+type PersistentStorage interface {
+	SaveData(ms map[string]entity.ShortURL) error
+	LoadData(ms map[string]entity.ShortURL) error
+	Close() error
+}
+
 type MemoryStorage struct {
 	sync.Mutex
-	Store map[string]entity.ShortURL
+	URLStore map[string]entity.ShortURL
 	PersistentStorage
 }
 
@@ -23,39 +29,53 @@ func NewMemoryStorage(cfg *configs.Config) (*MemoryStorage, error) {
 		return nil, err
 	}
 	ms := &MemoryStorage{
-		Store:             make(map[string]entity.ShortURL),
+		URLStore:          make(map[string]entity.ShortURL),
 		PersistentStorage: ps,
 	}
 
-	if err := ps.LoadData(ms.Store); err != nil {
+	if err := ps.LoadData(ms.URLStore); err != nil {
 		return nil, err
 	}
 
 	return ms, err
 
 }
+func (ms *MemoryStorage) GetAllURLS(userId string) []entity.ShortURL {
+	ms.Lock()
+	defer ms.Unlock()
+	var urls []entity.ShortURL
+	for _, v := range ms.URLStore {
+		if v.UserID == userId {
+			urls = append(urls, v)
+		}
+	}
+	return urls
+}
 
-func (ms *MemoryStorage) GetShortURL(id string) (sURL entity.ShortURL, er error) {
+func (ms *MemoryStorage) GetShortURL(id, uId string) (sURL entity.ShortURL, er error) {
 	ms.Lock()
 	defer ms.Unlock()
 
-	s, ok := ms.Store[id]
-	if ok {
+	s, ok := ms.URLStore[id]
+	if ok && ms.URLStore[id].UserID == uId {
+
 		return s, nil
 	}
 	return entity.ShortURL{}, fmt.Errorf("url with id=%v not found", id)
 
 }
 
-func (ms *MemoryStorage) SaveURL(input string) (string, error) {
+func (ms *MemoryStorage) SaveURL(input, userId string) (string, error) {
 	ms.Lock()
 	defer ms.Unlock()
 
 	url := entity.ShortURL{
 		ID:     genetareID(),
-		Origin: input}
+		Origin: input,
+		UserID: userId,
+	}
 
-	ms.Store[url.ID] = url
+	ms.URLStore[url.ID] = url
 
 	return url.ID, nil
 }
@@ -71,7 +91,7 @@ func genetareID() string {
 
 func (ms *MemoryStorage) Close() error {
 
-	if err := ms.PersistentStorage.SaveData(ms.Store); err != nil {
+	if err := ms.PersistentStorage.SaveData(ms.URLStore); err != nil {
 		return err
 	}
 

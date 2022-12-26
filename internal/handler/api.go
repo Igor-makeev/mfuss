@@ -13,6 +13,10 @@ import (
 )
 
 func (h *Handler) PostJSONHandler(c *gin.Context) {
+	userId, err := getUserId(c)
+	if err != nil {
+		return
+	}
 
 	var input entity.URLInput
 	buf := new(bytes.Buffer)
@@ -22,16 +26,14 @@ func (h *Handler) PostJSONHandler(c *gin.Context) {
 		return
 	}
 
-	for {
-		if err := json.NewDecoder(buf).Decode(&input); err == io.EOF {
-			break
-		} else if err != nil {
-			http.Error(c.Writer, err.Error(), http.StatusBadRequest)
-			return
-		}
+	if err := json.NewDecoder(buf).Decode(&input); err == io.EOF {
+
+	} else if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
+		return
 	}
 
-	shortURLId, err := h.Repo.URLStorage.SaveURL(input.URL)
+	shortURLId, err := h.Repo.URLStorage.SaveURL(input.URL, userId)
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 		return

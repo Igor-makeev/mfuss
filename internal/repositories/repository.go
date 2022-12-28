@@ -3,6 +3,9 @@ package repositories
 import (
 	"mfuss/configs"
 	"mfuss/internal/entity"
+
+	"github.com/jmoiron/sqlx"
+	"github.com/sirupsen/logrus"
 )
 
 type URLStorage interface {
@@ -15,6 +18,7 @@ type URLStorage interface {
 type Repository struct {
 	URLStorage
 	Config configs.Config
+	DB     *sqlx.DB
 }
 
 func NewRepository(cfg *configs.Config) (*Repository, error) {
@@ -24,8 +28,14 @@ func NewRepository(cfg *configs.Config) (*Repository, error) {
 		return nil, err
 	}
 
+	db, err := sqlx.Open("postgres", cfg.DBDSN)
+	if err != nil {
+		logrus.Println("Error connecting to database")
+	}
+
 	return &Repository{
 		URLStorage: ms,
 		Config:     *cfg,
+		DB:         db,
 	}, nil
 }

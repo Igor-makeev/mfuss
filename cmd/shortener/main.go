@@ -17,10 +17,6 @@ func main() {
 
 	cfg := configs.NewConfig()
 
-	logrus.Printf("env variable SERVER_ADDRESS=%v", cfg.SrvAddr)
-	logrus.Printf("env variable BASE_URL=%v", cfg.BaseURL)
-	logrus.Printf("env variable FILE_STORAGE_PATH=%v", cfg.FileStoragePath)
-
 	rep, err := repositories.NewRepository(cfg)
 	if err != nil {
 		logrus.Fatal(err)

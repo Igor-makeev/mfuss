@@ -66,3 +66,14 @@ func (h *Handler) GetURLHandler(c *gin.Context) {
 	c.Writer.WriteHeader(http.StatusTemporaryRedirect)
 
 }
+
+func (h *Handler) GetPingHandler(c *gin.Context) {
+
+	err := h.Repo.DB.Ping()
+	if err != nil {
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+	}
+
+	c.Writer.WriteHeader(http.StatusOK)
+
+}

@@ -39,3 +39,13 @@ func NewRepository(cfg *configs.Config) (*Repository, error) {
 		DB:         db,
 	}, nil
 }
+
+func (rep *Repository) Close() error {
+	if err := rep.URLStorage.Close(); err != nil {
+		return err
+	}
+	if err := rep.DB.Close(); err != nil {
+		return err
+	}
+	return nil
+}

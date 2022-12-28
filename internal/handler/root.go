@@ -68,12 +68,14 @@ func (h *Handler) GetURLHandler(c *gin.Context) {
 }
 
 func (h *Handler) GetPingHandler(c *gin.Context) {
-
-	err := h.Repo.DB.Ping()
-	if err != nil {
+	if h.Repo.DB != nil {
+		err := h.Repo.DB.Ping()
+		if err != nil {
+			c.Writer.WriteHeader(http.StatusInternalServerError)
+		}
+		c.Writer.WriteHeader(http.StatusOK)
+	} else {
 		c.Writer.WriteHeader(http.StatusInternalServerError)
 	}
-
-	c.Writer.WriteHeader(http.StatusOK)
 
 }

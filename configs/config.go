@@ -33,6 +33,7 @@ func NewConfig() *Config {
 	logrus.Printf("env variable SERVER_ADDRESS=%v", cfg.SrvAddr)
 	logrus.Printf("env variable BASE_URL=%v", cfg.BaseURL)
 	logrus.Printf("env variable FILE_STORAGE_PATH=%v", cfg.FileStoragePath)
+	logrus.Printf("env variable DATABASE_DSN=%v", cfg.DBDSN)
 
 	return &cfg
 }

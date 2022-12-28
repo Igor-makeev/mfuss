@@ -44,8 +44,12 @@ func (rep *Repository) Close() error {
 	if err := rep.URLStorage.Close(); err != nil {
 		return err
 	}
-	if err := rep.DB.Close(); err != nil {
-		return err
+	if rep.DB != nil {
+		err := rep.DB.Close()
+		if err != nil {
+			return err
+		}
+
 	}
 	return nil
 }

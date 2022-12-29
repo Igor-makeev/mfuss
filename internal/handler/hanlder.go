@@ -23,6 +23,7 @@ func NewHandler(rep *repositories.Repository) *Handler {
 
 		root.POST("/", GzipUnpack(), handler.PostHandler)
 		root.GET("/:id", GzipCompress(gzip.DefaultCompression), handler.GetURLHandler)
+		root.GET("/ping", handler.GetPingHandler)
 
 		api := handler.Router.Group("api", UserCheck())
 		{

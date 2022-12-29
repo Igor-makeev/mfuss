@@ -3,6 +3,7 @@ package repositories
 import (
 	"mfuss/configs"
 	"mfuss/internal/entity"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
@@ -27,8 +28,8 @@ func NewRepository(cfg *configs.Config) (*Repository, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	db, err := sqlx.Open("postgres", cfg.DBDSN)
+	cfg.DBDSN = strings.Trim(cfg.DBDSN, "*")
+	db, err := sqlx.Connect("postgres", cfg.DBDSN)
 	if err != nil {
 		logrus.Println("Error connecting to database")
 	}

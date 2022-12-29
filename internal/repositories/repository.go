@@ -29,7 +29,7 @@ func NewRepository(cfg *configs.Config) (*Repository, error) {
 		return nil, err
 	}
 
-	addrCut := strings.Trim(cfg.DBDSN, "*")
+	addrCut := strings.TrimPrefix(cfg.DBDSN, "***")
 	logrus.Println(addrCut)
 	db, err := sqlx.Open("postgres", addrCut)
 	if err != nil {

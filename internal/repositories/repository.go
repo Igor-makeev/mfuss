@@ -28,8 +28,8 @@ func NewRepository(cfg *configs.Config) (*Repository, error) {
 	if err != nil {
 		return nil, err
 	}
-	cfg.DBDSN = strings.Trim(cfg.DBDSN, "*")
-	db, err := sqlx.Connect("postgres", cfg.DBDSN)
+	addrCut := strings.Trim(cfg.DBDSN, "*")
+	db, err := sqlx.Connect("postgres", addrCut)
 	if err != nil {
 		logrus.Println("Error connecting to database")
 	}

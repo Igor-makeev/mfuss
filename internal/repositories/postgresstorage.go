@@ -87,7 +87,7 @@ func (ps *PostgresStorage) SaveURL(input, userID string) (string, error) {
 	if _, err := ps.DB.Exec(context.Background(), `insert into url_store(id, result,origin,user_id) values ($1, $2,$3,$4);`, id, res, input, userID); err != nil {
 		return "", err
 	}
-	return id, nil
+	return res, nil
 
 }
 

@@ -49,3 +49,31 @@ func (h *Handler) PostJSONHandler(c *gin.Context) {
 	c.JSON(http.StatusCreated, entity.URLResponse{Result: short})
 
 }
+
+func (h *Handler) MultipleShortHandler(c *gin.Context) {
+	userID, err := getUserID(c)
+	if err != nil {
+		return
+	}
+	var input []entity.URLBatchInput
+	var resOutput entity.URLBatchResponse
+	var responseBatch []entity.URLBatchResponse
+
+	err = json.NewDecoder(c.Request.Body).Decode(&input)
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
+	}
+
+	for _, v := range input {
+		res, err := h.Repo.URLStorage.SaveURL(v.URL, userID)
+		if err != nil {
+			http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+		}
+		resOutput.CorrelID = v.CorrelID
+		resOutput.URL = res
+		responseBatch = append(responseBatch, resOutput)
+
+	}
+	c.JSON(http.StatusOK, responseBatch)
+
+}

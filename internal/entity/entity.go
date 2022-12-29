@@ -14,3 +14,13 @@ type URLInput struct {
 type URLResponse struct {
 	Result string `json:"result"`
 }
+
+type URLBatchInput struct {
+	CorrelID string `json:"correlation_id"`
+	URL      string `json:"original_url"`
+}
+
+type URLBatchResponse struct {
+	CorrelID string `json:"correlation_id"`
+	URL      string `json:"short_url"`
+}

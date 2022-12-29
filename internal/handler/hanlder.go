@@ -27,7 +27,7 @@ func NewHandler(rep *repositories.Repository) *Handler {
 
 		api := handler.Router.Group("api", UserCheck())
 		{
-
+			api.POST("/shorten/batch", handler.MultipleShortHandler)
 			api.POST("/shorten", GzipUnpack(), handler.PostJSONHandler)
 			api.GET("/user/urls", handler.GetUSERURLS)
 		}

@@ -37,15 +37,13 @@ func (h *Handler) PostHandler(c *gin.Context) {
 		return
 	}
 
-	short := fmt.Sprintf("%v/%v", h.Repo.Config.BaseURL, shortURLId)
-
-	if _, err := url.ParseRequestURI(short); err != nil {
-		http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", short), http.StatusInternalServerError)
+	if _, err := url.ParseRequestURI(shortURLId); err != nil {
+		http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURLId), http.StatusInternalServerError)
 		return
 	}
 
 	c.Writer.WriteHeader(http.StatusCreated)
-	c.Writer.Write([]byte(short))
+	c.Writer.Write([]byte(shortURLId))
 
 }
 

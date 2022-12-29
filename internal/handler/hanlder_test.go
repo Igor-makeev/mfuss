@@ -17,7 +17,7 @@ import (
 
 func TestHandler_PostHandler(t *testing.T) {
 	cfg := configs.Config{SrvAddr: "localhost:8080", BaseURL: "http://localhost:8080"}
-	store := mock.NewStorageMock()
+	store := mock.NewStorageMock(&cfg)
 	rep := &repositories.Repository{
 		URLStorage: store,
 
@@ -49,7 +49,7 @@ func TestHandler_PostHandler(t *testing.T) {
 
 func TestHandler_GetURLHandler(t *testing.T) {
 	cfg := configs.Config{SrvAddr: "localhost:8080", BaseURL: "http://localhost:8080"}
-	store := mock.NewStorageMock()
+	store := mock.NewStorageMock(&cfg)
 	rep := &repositories.Repository{
 		URLStorage: store,
 		Config:     cfg,

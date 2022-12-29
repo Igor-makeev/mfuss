@@ -39,14 +39,12 @@ func (h *Handler) PostJSONHandler(c *gin.Context) {
 		return
 	}
 
-	short := fmt.Sprintf("%v/%v", h.Repo.Config.BaseURL, shortURLId)
-
-	if _, err := url.ParseRequestURI(short); err != nil {
-		http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", short), http.StatusInternalServerError)
+	if _, err := url.ParseRequestURI(shortURLId); err != nil {
+		http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURLId), http.StatusInternalServerError)
 		return
 	}
 
-	c.JSON(http.StatusCreated, entity.URLResponse{Result: short})
+	c.JSON(http.StatusCreated, entity.URLResponse{Result: shortURLId})
 
 }
 

@@ -2,16 +2,18 @@ package mock
 
 import (
 	"fmt"
+	"mfuss/configs"
 	"mfuss/internal/entity"
 )
 
 type StorageMock struct {
 	store map[string]entity.ShortURL
 	ID    string
+	cfg   configs.Config
 }
 
-func NewStorageMock() *StorageMock {
-	return &StorageMock{store: make(map[string]entity.ShortURL), ID: "0"}
+func NewStorageMock(cfg *configs.Config) *StorageMock {
+	return &StorageMock{store: make(map[string]entity.ShortURL), ID: "0", cfg: *cfg}
 }
 
 func (store *StorageMock) SaveURL(input, userid string) (string, error) {
@@ -20,8 +22,8 @@ func (store *StorageMock) SaveURL(input, userid string) (string, error) {
 		Origin: input}
 
 	store.store[store.ID] = url
-
-	return url.ID, nil
+	url.ResultURL = store.cfg.BaseURL + "/" + url.ID
+	return url.ResultURL, nil
 }
 func (store *StorageMock) GetAllURLS(userID string) []entity.ShortURL {
 

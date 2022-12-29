@@ -68,6 +68,7 @@ func TestHandler_GetURLHandler(t *testing.T) {
 	c.AddParam("id", "0")
 
 	h.GetURLHandler(c)
+
 	go http.ListenAndServe("127.0.0.1:8080", h.Router)
 
 	client := http.Client{

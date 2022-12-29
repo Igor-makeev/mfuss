@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -69,7 +70,7 @@ func (h *Handler) GetURLHandler(c *gin.Context) {
 
 func (h *Handler) GetPingHandler(c *gin.Context) {
 	if h.Repo.DB != nil {
-		err := h.Repo.DB.Ping()
+		err := h.Repo.DB.Ping(context.Background())
 		if err != nil {
 			c.Writer.WriteHeader(http.StatusInternalServerError)
 		}

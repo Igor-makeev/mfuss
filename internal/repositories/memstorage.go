@@ -2,13 +2,11 @@ package repositories
 
 import (
 	"fmt"
-	"math/rand"
 	"mfuss/configs"
 	"mfuss/internal/entity"
+	"mfuss/internal/utilits"
 	"sync"
 )
-
-const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 type PersistentStorage interface {
 	SaveData(ms map[string]entity.ShortURL) error
@@ -72,7 +70,7 @@ func (ms *MemoryStorage) SaveURL(input, userID string) (string, error) {
 	defer ms.Unlock()
 
 	url := entity.ShortURL{
-		ID:     genetareID(),
+		ID:     utilits.GenetareID(),
 		Origin: input,
 		UserID: userID,
 	}
@@ -80,15 +78,6 @@ func (ms *MemoryStorage) SaveURL(input, userID string) (string, error) {
 	ms.URLStore[url.ID] = url
 
 	return url.ID, nil
-}
-
-func genetareID() string {
-	buf := make([]byte, 5)
-	for i := range buf {
-		buf[i] = letterBytes[rand.Intn(len(letterBytes))]
-	}
-	res := string(buf)
-	return res
 }
 
 func (ms *MemoryStorage) Close() error {

@@ -4,11 +4,8 @@ import (
 	"context"
 	"mfuss/configs"
 	"mfuss/internal/entity"
-	"strings"
 
 	"github.com/jackc/pgx/v5"
-
-	"github.com/sirupsen/logrus"
 )
 
 type URLStorage interface {
@@ -26,37 +23,41 @@ type Repository struct {
 
 func NewRepository(cfg *configs.Config) (*Repository, error) {
 
-	ms, err := NewMemoryStorage(cfg)
+	if cfg.DBDSN == "" {
+		ms, err := NewMemoryStorage(cfg)
+		if err != nil {
+			return nil, err
+		}
+		return &Repository{
+			URLStorage: ms,
+			Config:     *cfg,
+			DB:         nil,
+		}, nil
+	}
+
+	ps, err := NewPostgresStorage(cfg)
 	if err != nil {
 		return nil, err
 	}
-
-	addrCut := strings.TrimPrefix(cfg.DBDSN, "***")
-	logrus.Println(addrCut)
-
-	conn, err := pgx.Connect(context.Background(), addrCut)
-	if err != nil {
-		logrus.Printf("Unable to connect to database: %v\n", err)
-
-	}
-
 	return &Repository{
-		URLStorage: ms,
+		URLStorage: ps,
 		Config:     *cfg,
-		DB:         conn,
+		DB:         ps.DB,
 	}, nil
+
 }
 
 func (rep *Repository) Close() error {
-	if err := rep.URLStorage.Close(); err != nil {
-		return err
-	}
-	if rep.DB != nil {
-		err := rep.DB.Close(context.Background())
-		if err != nil {
+	if rep.URLStorage != nil {
+		if err := rep.URLStorage.Close(); err != nil {
 			return err
 		}
-
 	}
+	if rep.DB != nil {
+		if err := rep.DB.Close(context.Background()); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

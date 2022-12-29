@@ -72,6 +72,6 @@ func (h *Handler) MultipleShortHandler(c *gin.Context) {
 		responseBatch = append(responseBatch, resOutput)
 
 	}
-	c.JSON(http.StatusOK, responseBatch)
+	c.JSON(http.StatusCreated, responseBatch)
 
 }

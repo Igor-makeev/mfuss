@@ -92,9 +92,9 @@ func (ps *PostgresStorage) SaveURL(input, userID string) (string, error) {
 }
 
 func (ps *PostgresStorage) Close() error {
-	// if _, err := ps.DB.Exec(context.Background(), "Drop table url_store;"); err != nil {
-	// 	return err
-	// }
+	if _, err := ps.DB.Exec(context.Background(), "Drop table url_store;"); err != nil {
+		return err
+	}
 	// TODO fix this moment with drop
 	if err := ps.DB.Close(context.Background()); err != nil {
 		return err

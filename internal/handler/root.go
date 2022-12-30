@@ -62,8 +62,9 @@ func (h *Handler) GetURLHandler(c *gin.Context) {
 	}
 
 	c.Writer.Header().Set("Location", sURL.Origin)
-	c.Writer.WriteHeader(http.StatusTemporaryRedirect)
 
+	c.Writer.WriteHeader(http.StatusTemporaryRedirect)
+	c.Writer.Write([]byte(sURL.ResultURL))
 }
 
 func (h *Handler) GetPingHandler(c *gin.Context) {

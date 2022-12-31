@@ -64,7 +64,7 @@ func (h *Handler) GetURLHandler(c *gin.Context) {
 	c.Writer.Header().Set("Location", sURL.Origin)
 
 	c.Writer.WriteHeader(http.StatusTemporaryRedirect)
-	c.Writer.Write([]byte(sURL.ResultURL))
+
 }
 
 func (h *Handler) GetPingHandler(c *gin.Context) {
@@ -75,6 +75,7 @@ func (h *Handler) GetPingHandler(c *gin.Context) {
 		}
 		c.Writer.WriteHeader(http.StatusOK)
 	} else {
+		c.Writer.Write([]byte("no "))
 		c.Writer.WriteHeader(http.StatusInternalServerError)
 	}
 

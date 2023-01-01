@@ -10,6 +10,7 @@ import (
 	"net/url"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 func (h *Handler) PostJSONHandler(c *gin.Context) {
@@ -61,7 +62,7 @@ func (h *Handler) MultipleShortHandler(c *gin.Context) {
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
 	}
-
+	logrus.Println("multsH", userID)
 	for _, v := range input {
 		res, err := h.Repo.URLStorage.SaveURL(v.URL, userID)
 		if err != nil {

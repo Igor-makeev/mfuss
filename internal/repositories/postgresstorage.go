@@ -74,7 +74,6 @@ func (ps *PostgresStorage) GetShortURL(id, userID string) (sURL entity.ShortURL,
 	if err := ps.DB.QueryRow(context.Background(), `select id,result,origin,user_id from url_store where id=$1 and user_id=$2;`, id, userID).Scan(&url.ID, &url.ResultURL, &url.Origin, &url.UserID); err != nil {
 		return entity.ShortURL{}, err
 	}
-	logrus.Println(url)
 
 	return url, nil
 }

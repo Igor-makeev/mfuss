@@ -57,7 +57,7 @@ func (h *Handler) GetURLHandler(c *gin.Context) {
 
 	sURL, err := h.Repo.URLStorage.GetShortURL(id, userID)
 	if err != nil {
-		http.Error(c.Writer, err.Error(), http.StatusNotFound)
+		http.Error(c.Writer, err.Error(), http.StatusBadGateway)
 		return
 	}
 

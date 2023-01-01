@@ -25,7 +25,7 @@ func NewHandler(rep *repositories.Repository) *Handler {
 		root.GET("/:id", GzipCompress(gzip.DefaultCompression), handler.GetURLHandler)
 		root.GET("/ping", handler.GetPingHandler)
 
-		api := handler.Router.Group("api", UserCheck())
+		api := handler.Router.Group("api")
 		{
 			api.POST("/shorten/batch", handler.MultipleShortHandler)
 			api.POST("/shorten", GzipUnpack(), handler.PostJSONHandler)

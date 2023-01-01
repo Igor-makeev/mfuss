@@ -10,6 +10,7 @@ import (
 	"net/url"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 func (h *Handler) PostJSONHandler(c *gin.Context) {
@@ -39,13 +40,40 @@ func (h *Handler) PostJSONHandler(c *gin.Context) {
 		return
 	}
 
-	short := fmt.Sprintf("%v/%v", h.Repo.Config.BaseURL, shortURLId)
-
-	if _, err := url.ParseRequestURI(short); err != nil {
-		http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", short), http.StatusInternalServerError)
+	if _, err := url.ParseRequestURI(shortURLId); err != nil {
+		http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURLId), http.StatusInternalServerError)
 		return
 	}
 
-	c.JSON(http.StatusCreated, entity.URLResponse{Result: short})
+	c.JSON(http.StatusCreated, entity.URLResponse{Result: shortURLId})
+
+}
+
+func (h *Handler) MultipleShortHandler(c *gin.Context) {
+	userID, err := getUserID(c)
+	if err != nil {
+		return
+	}
+	var input []entity.URLBatchInput
+	var resOutput entity.URLBatchResponse
+	var responseBatch []entity.URLBatchResponse
+
+	err = json.NewDecoder(c.Request.Body).Decode(&input)
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
+	}
+
+	for _, v := range input {
+		res, err := h.Repo.URLStorage.SaveURL(v.URL, userID)
+		if err != nil {
+			http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+		}
+		resOutput.CorrelID = v.CorrelID
+		resOutput.URL = res
+		responseBatch = append(responseBatch, resOutput)
+
+	}
+	logrus.Println("multsH", userID)
+	c.JSON(http.StatusCreated, responseBatch)
 
 }

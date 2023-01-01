@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 func (h *Handler) PostHandler(c *gin.Context) {
@@ -37,15 +38,13 @@ func (h *Handler) PostHandler(c *gin.Context) {
 		return
 	}
 
-	short := fmt.Sprintf("%v/%v", h.Repo.Config.BaseURL, shortURLId)
-
-	if _, err := url.ParseRequestURI(short); err != nil {
-		http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", short), http.StatusInternalServerError)
+	if _, err := url.ParseRequestURI(shortURLId); err != nil {
+		http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURLId), http.StatusInternalServerError)
 		return
 	}
-
+	logrus.Println("postH", userID)
 	c.Writer.WriteHeader(http.StatusCreated)
-	c.Writer.Write([]byte(short))
+	c.Writer.Write([]byte(shortURLId))
 
 }
 
@@ -54,16 +53,17 @@ func (h *Handler) GetURLHandler(c *gin.Context) {
 	if err != nil {
 		return
 	}
-
+	logrus.Println(userID)
 	id := c.Param("id")
-
+	logrus.Println(id)
 	sURL, err := h.Repo.URLStorage.GetShortURL(id, userID)
 	if err != nil {
-		http.Error(c.Writer, err.Error(), http.StatusNotFound)
+		http.Error(c.Writer, err.Error(), http.StatusBadGateway)
 		return
 	}
 
 	c.Writer.Header().Set("Location", sURL.Origin)
+
 	c.Writer.WriteHeader(http.StatusTemporaryRedirect)
 
 }
@@ -76,6 +76,7 @@ func (h *Handler) GetPingHandler(c *gin.Context) {
 		}
 		c.Writer.WriteHeader(http.StatusOK)
 	} else {
+		c.Writer.Write([]byte("no "))
 		c.Writer.WriteHeader(http.StatusInternalServerError)
 	}
 

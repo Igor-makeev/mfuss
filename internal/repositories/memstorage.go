@@ -77,7 +77,7 @@ func (ms *MemoryStorage) SaveURL(input, userID string) (string, error) {
 	url.ResultURL = ms.cfg.BaseURL + "/" + url.ID
 	ms.URLStore[url.ID] = url
 
-	return url.ID, nil
+	return url.ResultURL, nil
 }
 
 func (ms *MemoryStorage) Close() error {

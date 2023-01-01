@@ -72,23 +72,6 @@ func (fs *FileStorage) WriteURL(URL *entity.ShortURL) error {
 
 }
 
-func (fs *FileStorage) ReadURL() (*entity.ShortURL, error) {
-
-	if !fs.scanner.Scan() {
-		return nil, fs.scanner.Err()
-	}
-
-	data := fs.scanner.Bytes()
-
-	URL := entity.ShortURL{}
-	err := json.Unmarshal(data, &URL)
-	if err != nil {
-		return nil, err
-	}
-
-	return &URL, nil
-}
-
 func (fs *FileStorage) Close() error {
 
 	return fs.file.Close()

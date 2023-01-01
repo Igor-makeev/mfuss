@@ -71,7 +71,7 @@ func (ps *PostgresStorage) GetShortURL(id, userID string) (sURL entity.ShortURL,
 	ps.Lock()
 	defer ps.Unlock()
 	var url entity.ShortURL
-	if err := ps.DB.QueryRow(context.Background(), `select id,result,origin,user_id from url_store where id=$1 and user_id=$2;`, id, userID).Scan(&url.ID, &url.ResultURL, &url.Origin, &url.UserID); err != nil {
+	if err := ps.DB.QueryRow(context.Background(), `select id,result,origin,user_id from url_store where id=$1 ;`, id).Scan(&url.ID, &url.ResultURL, &url.Origin, &url.UserID); err != nil {
 		return entity.ShortURL{}, err
 	}
 
@@ -87,7 +87,7 @@ func (ps *PostgresStorage) SaveURL(input, userID string) (string, error) {
 	if _, err := ps.DB.Exec(context.Background(), `insert into url_store(id, result,origin,user_id) values ($1, $2,$3,$4);`, id, res, input, userID); err != nil {
 		return "", err
 	}
-	return id, nil
+	return res, nil
 
 }
 

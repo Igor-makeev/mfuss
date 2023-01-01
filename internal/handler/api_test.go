@@ -19,7 +19,7 @@ import (
 
 func TestHandler_PostJSONHandler(t *testing.T) {
 	cfg := configs.Config{SrvAddr: "localhost:8080", BaseURL: "http://localhost:8080"}
-	store := mock.NewStorageMock()
+	store := mock.NewStorageMock(&cfg)
 
 	rep := &repositories.Repository{
 		URLStorage: store,

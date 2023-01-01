@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"mfuss/internal/utilits"
@@ -36,7 +35,7 @@ func (h *Handler) PostHandler(c *gin.Context) {
 
 	switch {
 	case err != nil:
-		if errors.Is(err, utilits.URLConflict{}) {
+		if _, ok := err.(utilits.URLConflict); ok {
 			if err = utilits.CheckURL(shortURL); err != nil {
 				http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURL), http.StatusInternalServerError)
 			}

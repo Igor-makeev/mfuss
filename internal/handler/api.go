@@ -62,7 +62,7 @@ func (h *Handler) MultipleShortHandler(c *gin.Context) {
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
 	}
-	logrus.Println("multsH", userID)
+
 	for _, v := range input {
 		res, err := h.Repo.URLStorage.SaveURL(v.URL, userID)
 		if err != nil {
@@ -73,6 +73,7 @@ func (h *Handler) MultipleShortHandler(c *gin.Context) {
 		responseBatch = append(responseBatch, resOutput)
 
 	}
+	logrus.Println("multsH", userID)
 	c.JSON(http.StatusCreated, responseBatch)
 
 }

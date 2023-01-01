@@ -42,7 +42,7 @@ func (h *Handler) PostHandler(c *gin.Context) {
 		http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURLId), http.StatusInternalServerError)
 		return
 	}
-
+	logrus.Println("postH", userID)
 	c.Writer.WriteHeader(http.StatusCreated)
 	c.Writer.Write([]byte(shortURLId))
 

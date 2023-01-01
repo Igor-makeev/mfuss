@@ -3,11 +3,12 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mfuss/internal/entity"
+	"mfuss/internal/utilits"
 	"net/http"
-	"net/url"
 
 	"github.com/gin-gonic/gin"
 )
@@ -33,18 +34,22 @@ func (h *Handler) PostJSONHandler(c *gin.Context) {
 		return
 	}
 
-	shortURLId, err := h.Repo.URLStorage.SaveURL(input.URL, userID)
-	if err != nil {
+	shortURL, err := h.Repo.URLStorage.SaveURL(input.URL, userID)
+
+	switch {
+	case err != nil:
+		if errors.Is(err, utilits.URLConflict{}) {
+			if err = utilits.CheckURL(shortURL); err != nil {
+				http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURL), http.StatusInternalServerError)
+			}
+
+			c.JSON(http.StatusConflict, entity.URLResponse{Result: shortURL})
+		}
 		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 		return
+	default:
+		c.JSON(http.StatusCreated, entity.URLResponse{Result: shortURL})
 	}
-
-	if _, err := url.ParseRequestURI(shortURLId); err != nil {
-		http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURLId), http.StatusInternalServerError)
-		return
-	}
-
-	c.JSON(http.StatusCreated, entity.URLResponse{Result: shortURLId})
 
 }
 

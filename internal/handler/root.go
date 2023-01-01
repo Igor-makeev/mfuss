@@ -2,8 +2,10 @@ package handler
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"mfuss/internal/utilits"
 	"net/http"
 	"net/url"
 	"strings"
@@ -30,20 +32,23 @@ func (h *Handler) PostHandler(c *gin.Context) {
 		return
 	}
 
-	shortURLId, err := h.Repo.URLStorage.SaveURL(string(body), userID)
+	shortURL, err := h.Repo.URLStorage.SaveURL(string(body), userID)
 
-	if err != nil {
+	switch {
+	case err != nil:
+		if errors.Is(err, utilits.URLConflict{}) {
+			if err = utilits.CheckURL(shortURL); err != nil {
+				http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURL), http.StatusInternalServerError)
+			}
+			c.Writer.WriteHeader(http.StatusConflict)
+			c.Writer.Write([]byte(shortURL))
+		}
 		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 		return
+	default:
+		c.Writer.WriteHeader(http.StatusCreated)
+		c.Writer.Write([]byte(shortURL))
 	}
-
-	if _, err := url.ParseRequestURI(shortURLId); err != nil {
-		http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURLId), http.StatusInternalServerError)
-		return
-	}
-
-	c.Writer.WriteHeader(http.StatusCreated)
-	c.Writer.Write([]byte(shortURLId))
 
 }
 

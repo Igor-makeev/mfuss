@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 func (h *Handler) PostHandler(c *gin.Context) {
@@ -42,7 +41,7 @@ func (h *Handler) PostHandler(c *gin.Context) {
 		http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURLId), http.StatusInternalServerError)
 		return
 	}
-	logrus.Println("postH", userID)
+
 	c.Writer.WriteHeader(http.StatusCreated)
 	c.Writer.Write([]byte(shortURLId))
 
@@ -53,9 +52,9 @@ func (h *Handler) GetURLHandler(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	logrus.Println(userID)
+
 	id := c.Param("id")
-	logrus.Println(id)
+
 	sURL, err := h.Repo.URLStorage.GetShortURL(id, userID)
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusBadGateway)

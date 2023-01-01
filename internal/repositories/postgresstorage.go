@@ -25,6 +25,12 @@ CREATE TABLE url_store (
 	User_ID text
 );`
 
+var index = `
+CREATE UNIQUE INDEX url_store_index_unique
+  ON url_store
+  USING btree(Origin);
+`
+
 func NewPostgresStorage(cfg *configs.Config) (*PostgresStorage, error) {
 	conn, err := pgx.Connect(context.Background(), cfg.DBDSN)
 	if err != nil {
@@ -33,6 +39,7 @@ func NewPostgresStorage(cfg *configs.Config) (*PostgresStorage, error) {
 	}
 
 	conn.Exec(context.Background(), schema)
+	conn.Exec(context.Background(), index)
 
 	ps := &PostgresStorage{
 		DB:  conn,

@@ -10,7 +10,6 @@ import (
 	"net/url"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 func (h *Handler) PostJSONHandler(c *gin.Context) {
@@ -73,7 +72,7 @@ func (h *Handler) MultipleShortHandler(c *gin.Context) {
 		responseBatch = append(responseBatch, resOutput)
 
 	}
-	logrus.Println("multsH", userID)
+
 	c.JSON(http.StatusCreated, responseBatch)
 
 }

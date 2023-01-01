@@ -41,9 +41,11 @@ func (h *Handler) PostHandler(c *gin.Context) {
 			}
 			c.Writer.WriteHeader(http.StatusConflict)
 			c.Writer.Write([]byte(shortURL))
+			return
+		} else {
+			http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+			return
 		}
-		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
-		return
 	default:
 		c.Writer.WriteHeader(http.StatusCreated)
 		c.Writer.Write([]byte(shortURL))

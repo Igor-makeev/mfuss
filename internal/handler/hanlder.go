@@ -17,8 +17,8 @@ func NewHandler(rep *repositories.Repository) *Handler {
 		Router: gin.New(),
 		Repo:   rep,
 	}
-
-	root := handler.Router.Group("/", UserCheck())
+	handler.Router.Use(UserCheck())
+	root := handler.Router.Group("/")
 	{
 
 		root.POST("/", GzipUnpack(), handler.PostHandler)

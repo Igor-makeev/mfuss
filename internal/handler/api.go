@@ -3,7 +3,6 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"mfuss/internal/entity"
@@ -38,15 +37,18 @@ func (h *Handler) PostJSONHandler(c *gin.Context) {
 
 	switch {
 	case err != nil:
-		if errors.Is(err, utilits.URLConflict{}) {
-			if err = utilits.CheckURL(shortURL); err != nil {
+		if _, ok := err.(utilits.URLConflict); ok {
+			if err := utilits.CheckURL(shortURL); err != nil {
 				http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURL), http.StatusInternalServerError)
 			}
 
 			c.JSON(http.StatusConflict, entity.URLResponse{Result: shortURL})
+			return
+		} else {
+			http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+			return
 		}
-		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
-		return
+
 	default:
 		c.JSON(http.StatusCreated, entity.URLResponse{Result: shortURL})
 	}

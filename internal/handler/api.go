@@ -15,6 +15,7 @@ import (
 func (h *Handler) PostJSONHandler(c *gin.Context) {
 	userID, err := getUserID(c)
 	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
@@ -26,58 +27,54 @@ func (h *Handler) PostJSONHandler(c *gin.Context) {
 		return
 	}
 
-	if err := json.NewDecoder(buf).Decode(&input); err == io.EOF {
-
-	} else if err != nil {
+	if err := json.NewDecoder(buf).Decode(&input); err != nil && err != io.EOF {
 		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	shortURL, err := h.Repo.URLStorage.SaveURL(input.URL, userID)
+	shortURL, err := h.Repo.URLStorager.SaveURL(input.URL, userID)
 
-	switch {
-	case err != nil:
-		if _, ok := err.(utilits.URLConflict); ok {
-			if err := utilits.CheckURL(shortURL); err != nil {
-				http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURL), http.StatusInternalServerError)
-			}
+	if err != nil {
+		_, ok := err.(utilits.URLConflict)
 
-			c.JSON(http.StatusConflict, entity.URLResponse{Result: shortURL})
-			return
-		} else {
+		if !ok {
 			http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-	default:
-		c.JSON(http.StatusCreated, entity.URLResponse{Result: shortURL})
+		if err := utilits.CheckURL(shortURL); err != nil {
+			http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURL), http.StatusInternalServerError)
+		}
+
+		c.JSON(http.StatusConflict, entity.URLResponse{Result: shortURL})
+		return
 	}
+
+	if err := utilits.CheckURL(shortURL); err != nil {
+		http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURL), http.StatusInternalServerError)
+	}
+	c.JSON(http.StatusCreated, entity.URLResponse{Result: shortURL})
 
 }
 
 func (h *Handler) MultipleShortHandler(c *gin.Context) {
 	userID, err := getUserID(c)
 	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusUnauthorized)
 		return
 	}
 	var input []entity.URLBatchInput
-	var resOutput entity.URLBatchResponse
-	var responseBatch []entity.URLBatchResponse
 
 	err = json.NewDecoder(c.Request.Body).Decode(&input)
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
+		return
 	}
 
-	for _, v := range input {
-		res, err := h.Repo.URLStorage.SaveURL(v.URL, userID)
-		if err != nil {
-			http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
-		}
-		resOutput.CorrelID = v.CorrelID
-		resOutput.URL = res
-		responseBatch = append(responseBatch, resOutput)
-
+	responseBatch, err := h.Repo.URLStorager.MultipleShort(input, userID)
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	c.JSON(http.StatusCreated, responseBatch)

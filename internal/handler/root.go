@@ -15,6 +15,7 @@ import (
 func (h *Handler) PostHandler(c *gin.Context) {
 	userID, err := getUserID(c)
 	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
@@ -31,7 +32,7 @@ func (h *Handler) PostHandler(c *gin.Context) {
 		return
 	}
 
-	shortURL, err := h.Repo.URLStorage.SaveURL(string(body), userID)
+	shortURL, err := h.Repo.URLStorager.SaveURL(string(body), userID)
 
 	switch {
 	case err != nil:
@@ -39,7 +40,7 @@ func (h *Handler) PostHandler(c *gin.Context) {
 			if err = utilits.CheckURL(shortURL); err != nil {
 				http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURL), http.StatusInternalServerError)
 			}
-			c.Writer.WriteHeader(http.StatusConflict)
+			c.Status(http.StatusConflict)
 			c.Writer.Write([]byte(shortURL))
 			return
 		} else {
@@ -47,7 +48,7 @@ func (h *Handler) PostHandler(c *gin.Context) {
 			return
 		}
 	default:
-		c.Writer.WriteHeader(http.StatusCreated)
+		c.Status(http.StatusCreated)
 		c.Writer.Write([]byte(shortURL))
 	}
 
@@ -56,12 +57,13 @@ func (h *Handler) PostHandler(c *gin.Context) {
 func (h *Handler) GetURLHandler(c *gin.Context) {
 	userID, err := getUserID(c)
 	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
 	id := c.Param("id")
 
-	sURL, err := h.Repo.URLStorage.GetShortURL(id, userID)
+	sURL, err := h.Repo.URLStorager.GetShortURL(id, userID)
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusBadGateway)
 		return
@@ -69,7 +71,7 @@ func (h *Handler) GetURLHandler(c *gin.Context) {
 
 	c.Writer.Header().Set("Location", sURL.Origin)
 
-	c.Writer.WriteHeader(http.StatusTemporaryRedirect)
+	c.Status(http.StatusTemporaryRedirect)
 
 }
 
@@ -77,12 +79,12 @@ func (h *Handler) GetPingHandler(c *gin.Context) {
 	if h.Repo.DB != nil {
 		err := h.Repo.DB.Ping(context.Background())
 		if err != nil {
-			c.Writer.WriteHeader(http.StatusInternalServerError)
+			c.Status(http.StatusInternalServerError)
 		}
-		c.Writer.WriteHeader(http.StatusOK)
+		c.Status(http.StatusOK)
 	} else {
 		c.Writer.Write([]byte("no "))
-		c.Writer.WriteHeader(http.StatusInternalServerError)
+		c.Status(http.StatusInternalServerError)
 	}
 
 }

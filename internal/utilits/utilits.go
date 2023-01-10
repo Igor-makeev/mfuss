@@ -27,7 +27,7 @@ func (is URLConflict) Error() string {
 
 func CheckURL(shortURLId string) error {
 	if _, err := url.ParseRequestURI(shortURLId); err != nil {
-		//
+
 		return err
 	}
 	return nil

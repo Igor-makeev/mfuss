@@ -22,8 +22,8 @@ func TestHandler_PostJSONHandler(t *testing.T) {
 	store := mock.NewStorageMock(&cfg)
 
 	rep := &repositories.Repository{
-		URLStorage: store,
-		Config:     cfg,
+		URLStorager: store,
+		Config:      cfg,
 	}
 	exampleReq := entity.URLInput{URL: "https://kanobu.ru/"}
 	body, _ := json.Marshal(exampleReq)

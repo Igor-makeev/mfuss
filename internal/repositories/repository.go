@@ -8,15 +8,16 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-type URLStorage interface {
+type URLStorager interface {
 	SaveURL(input, userID string) (string, error)
 	GetAllURLS(userID string) []entity.ShortURL
 	GetShortURL(id, userID string) (sURL entity.ShortURL, er error)
+	MultipleShort(input []entity.URLBatchInput, userID string) ([]entity.URLBatchResponse, error)
 	Close() error
 }
 
 type Repository struct {
-	URLStorage
+	URLStorager
 	Config configs.Config
 	DB     *pgx.Conn
 }
@@ -29,9 +30,9 @@ func NewRepository(cfg *configs.Config) (*Repository, error) {
 			return nil, err
 		}
 		return &Repository{
-			URLStorage: ms,
-			Config:     *cfg,
-			DB:         nil,
+			URLStorager: ms,
+			Config:      *cfg,
+			DB:          nil,
 		}, nil
 	}
 
@@ -40,19 +41,19 @@ func NewRepository(cfg *configs.Config) (*Repository, error) {
 		return nil, err
 	}
 	return &Repository{
-		URLStorage: ps,
-		Config:     *cfg,
-		DB:         ps.DB,
+		URLStorager: ps,
+		Config:      *cfg,
+		DB:          ps.DB,
 	}, nil
 
 }
 
 func (rep *Repository) Close() error {
-	if rep.URLStorage != nil {
-		if err := rep.URLStorage.Close(); err != nil {
-			return err
-		}
+
+	if err := rep.URLStorager.Close(); err != nil {
+		return err
 	}
+
 	if rep.DB != nil {
 		if err := rep.DB.Close(context.Background()); err != nil {
 			return err

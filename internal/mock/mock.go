@@ -47,6 +47,9 @@ func (store *StorageMock) GetShortURL(id, idstring string) (sURL entity.ShortURL
 func (store *StorageMock) Close() error {
 	return nil
 }
+func (store *StorageMock) MultipleShort(input []entity.URLBatchInput, userID string) ([]entity.URLBatchResponse, error) {
+	return nil, nil
+}
 
 type PersistentStorageMock struct {
 }

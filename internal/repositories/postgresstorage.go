@@ -5,6 +5,7 @@ import (
 	"mfuss/configs"
 	"mfuss/internal/entity"
 	"mfuss/internal/utilits"
+	"mfuss/schema"
 	"sync"
 
 	"github.com/jackc/pgx/v5"
@@ -17,20 +18,6 @@ type PostgresStorage struct {
 	sync.Mutex
 }
 
-var schema = `
-CREATE TABLE url_store (
-    ID text,
-    Result text,
-    Origin text,
-	User_ID text
-);`
-
-var index = `
-CREATE UNIQUE INDEX url_store_index_unique
-  ON url_store
-  USING btree(Origin);
-`
-
 func NewPostgresStorage(cfg *configs.Config) (*PostgresStorage, error) {
 	conn, err := pgx.Connect(context.Background(), cfg.DBDSN)
 	if err != nil {
@@ -38,8 +25,8 @@ func NewPostgresStorage(cfg *configs.Config) (*PostgresStorage, error) {
 		return nil, err
 	}
 
-	conn.Exec(context.Background(), schema)
-	conn.Exec(context.Background(), index)
+	conn.Exec(context.Background(), schema.Schema)
+	conn.Exec(context.Background(), schema.Index)
 
 	ps := &PostgresStorage{
 		DB:  conn,
@@ -114,4 +101,23 @@ func (ps *PostgresStorage) Close() error {
 	}
 
 	return nil
+}
+
+func (ps *PostgresStorage) MultipleShort(input []entity.URLBatchInput, userID string) ([]entity.URLBatchResponse, error) {
+	var resOutput entity.URLBatchResponse
+	var responseBatch []entity.URLBatchResponse
+
+	for _, v := range input {
+		res, err := ps.SaveURL(v.URL, userID)
+		if err != nil {
+			return nil, err
+		}
+		resOutput.CorrelID = v.CorrelID
+		resOutput.URL = res
+		responseBatch = append(responseBatch, resOutput)
+
+	}
+
+	return responseBatch, nil
+
 }

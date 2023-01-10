@@ -19,7 +19,7 @@ func TestHandler_PostHandler(t *testing.T) {
 	cfg := configs.Config{SrvAddr: "localhost:8080", BaseURL: "http://localhost:8080"}
 	store := mock.NewStorageMock(&cfg)
 	rep := &repositories.Repository{
-		URLStorage: store,
+		URLStorager: store,
 
 		Config: cfg,
 	}
@@ -52,15 +52,15 @@ func TestHandler_GetURLHandler(t *testing.T) {
 	cfg := configs.Config{SrvAddr: "localhost:8080", BaseURL: "http://localhost:8080"}
 	store := mock.NewStorageMock(&cfg)
 	rep := &repositories.Repository{
-		URLStorage: store,
-		Config:     cfg,
+		URLStorager: store,
+		Config:      cfg,
 	}
 	rr := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(rr)
 	c.Set("userID", "test")
 	h := NewHandler(rep)
 	go http.ListenAndServe("127.0.0.1:8080", h.Router)
-	h.Repo.URLStorage.SaveURL("https://kanobu.ru/", "")
+	h.Repo.URLStorager.SaveURL("https://kanobu.ru/", "")
 	req, err := http.NewRequest(http.MethodGet, "http://localhost:8080/0", nil)
 	if err != nil {
 		t.Fatal(err)

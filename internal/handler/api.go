@@ -6,13 +6,18 @@ import (
 	"fmt"
 	"io"
 	"mfuss/internal/entity"
+	"mfuss/internal/utilits"
 	"net/http"
-	"net/url"
 
 	"github.com/gin-gonic/gin"
 )
 
 func (h *Handler) PostJSONHandler(c *gin.Context) {
+	userID, err := getUserID(c)
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusUnauthorized)
+		return
+	}
 
 	var input entity.URLInput
 	buf := new(bytes.Buffer)
@@ -22,28 +27,56 @@ func (h *Handler) PostJSONHandler(c *gin.Context) {
 		return
 	}
 
-	for {
-		if err := json.NewDecoder(buf).Decode(&input); err == io.EOF {
-			break
-		} else if err != nil {
-			http.Error(c.Writer, err.Error(), http.StatusBadRequest)
-			return
-		}
+	if err := json.NewDecoder(buf).Decode(&input); err != nil && err != io.EOF {
+		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
+		return
 	}
 
-	shortURLId, err := h.Repo.URLStorage.SaveURL(input.URL)
+	shortURL, err := h.Repo.URLStorager.SaveURL(input.URL, userID)
+
+	if err != nil {
+		_, ok := err.(utilits.URLConflict)
+
+		if !ok {
+			http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if err := utilits.CheckURL(shortURL); err != nil {
+			http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURL), http.StatusInternalServerError)
+		}
+
+		c.JSON(http.StatusConflict, entity.URLResponse{Result: shortURL})
+		return
+	}
+
+	if err := utilits.CheckURL(shortURL); err != nil {
+		http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURL), http.StatusInternalServerError)
+	}
+	c.JSON(http.StatusCreated, entity.URLResponse{Result: shortURL})
+
+}
+
+func (h *Handler) MultipleShortHandler(c *gin.Context) {
+	userID, err := getUserID(c)
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusUnauthorized)
+		return
+	}
+	var input []entity.URLBatchInput
+
+	err = json.NewDecoder(c.Request.Body).Decode(&input)
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	responseBatch, err := h.Repo.URLStorager.MultipleShort(input, userID)
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	short := fmt.Sprintf("%v/%v", h.Repo.Config.BaseURL, shortURLId)
-
-	if _, err := url.ParseRequestURI(short); err != nil {
-		http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", short), http.StatusInternalServerError)
-		return
-	}
-
-	c.JSON(http.StatusCreated, entity.URLResponse{Result: short})
+	c.JSON(http.StatusCreated, responseBatch)
 
 }

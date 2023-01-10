@@ -2,6 +2,11 @@ package handler
 
 import (
 	"compress/gzip"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
+	"errors"
+	mrand "math/rand"
 	"net/http"
 	"strings"
 
@@ -13,6 +18,9 @@ const (
 	BestSpeed          = gzip.BestSpeed
 	DefaultCompression = gzip.DefaultCompression
 	NoCompression      = gzip.NoCompression
+	secretKey          = "secret key"
+	userIDBytes        = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	userCtx            = "userID"
 )
 
 type gzipWriter struct {
@@ -58,6 +66,24 @@ func GzipUnpack() gin.HandlerFunc {
 	}
 }
 
+func UserCheck() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		cook, err := c.Cookie("UserID")
+		if err != nil {
+			cook = generateCook()
+			c.SetCookie("UserID", cook, 3600*24, "/", "localhost", false, false)
+
+		}
+		if checkCook(cook) {
+			c.Set(userCtx, cook)
+			c.Next()
+		} else {
+			c.AbortWithStatus(http.StatusUnauthorized)
+		}
+
+	}
+}
+
 func (g *gzipWriter) WriteString(s string) (int, error) {
 	return g.writer.Write([]byte(s))
 }
@@ -74,4 +100,60 @@ func shouldCompress(req *http.Request) bool {
 func shouldUnpack(req *http.Request) bool {
 	return strings.Contains(req.Header.Get("Content-Encoding"), "gzip")
 
+}
+
+func generateCook() string {
+	uuid := []byte(genetareUserID())
+
+	hash := hmac.New(sha256.New, []byte(secretKey))
+	hash.Write(uuid)
+	cook := hash.Sum(uuid)
+	res := hex.EncodeToString(cook)
+	return res
+}
+
+func checkCook(id string) bool {
+
+	var (
+		data []byte
+		err  error
+	)
+	data, err = hex.DecodeString(id)
+
+	if err != nil {
+
+		return false
+	}
+
+	h := hmac.New(sha256.New, []byte(secretKey))
+	h.Write(data[:5])
+	sign := h.Sum(nil)
+
+	return hmac.Equal(sign, data[5:])
+}
+
+func getUserID(c *gin.Context) (string, error) {
+	id, ok := c.Get(userCtx)
+
+	if !ok {
+		http.Error(c.Writer, "user not found", http.StatusInternalServerError)
+		return "", errors.New("user id not found")
+	}
+
+	idstring, ok := id.(string)
+	if !ok {
+		http.Error(c.Writer, "user id is of ivalid type", http.StatusInternalServerError)
+		return "", errors.New("user id is of ivalid type")
+	}
+
+	return idstring, nil
+}
+
+func genetareUserID() string {
+	buf := make([]byte, 5)
+	for i := range buf {
+		buf[i] = userIDBytes[mrand.Intn(len(userIDBytes))]
+	}
+
+	return string(buf)
 }

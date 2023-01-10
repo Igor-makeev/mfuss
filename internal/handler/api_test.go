@@ -19,11 +19,11 @@ import (
 
 func TestHandler_PostJSONHandler(t *testing.T) {
 	cfg := configs.Config{SrvAddr: "localhost:8080", BaseURL: "http://localhost:8080"}
-	store := mock.NewStorageMock()
+	store := mock.NewStorageMock(&cfg)
 
 	rep := &repositories.Repository{
-		URLStorage: store,
-		Config:     cfg,
+		URLStorager: store,
+		Config:      cfg,
 	}
 	exampleReq := entity.URLInput{URL: "https://kanobu.ru/"}
 	body, _ := json.Marshal(exampleReq)
@@ -34,7 +34,7 @@ func TestHandler_PostJSONHandler(t *testing.T) {
 	rr := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(rr)
 	c.Request = req
-
+	c.Set("userID", "test")
 	h := NewHandler(rep)
 	h.PostJSONHandler(c)
 

@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-type PersistentStorage interface {
+type PersistentStorager interface {
 	SaveData(ms map[string]entity.ShortURL) error
 	LoadData(ms map[string]entity.ShortURL) error
 	Close() error
@@ -18,7 +18,7 @@ type MemoryStorage struct {
 	sync.Mutex
 	URLStore map[string]entity.ShortURL
 	cfg      configs.Config
-	PersistentStorage
+	PersistentStorager
 }
 
 func NewMemoryStorage(cfg *configs.Config) (*MemoryStorage, error) {
@@ -28,9 +28,9 @@ func NewMemoryStorage(cfg *configs.Config) (*MemoryStorage, error) {
 		return nil, err
 	}
 	ms := &MemoryStorage{
-		URLStore:          make(map[string]entity.ShortURL),
-		PersistentStorage: ps,
-		cfg:               *cfg,
+		URLStore:           make(map[string]entity.ShortURL),
+		PersistentStorager: ps,
+		cfg:                *cfg,
 	}
 
 	if err := ps.LoadData(ms.URLStore); err != nil {
@@ -82,12 +82,31 @@ func (ms *MemoryStorage) SaveURL(input, userID string) (string, error) {
 
 func (ms *MemoryStorage) Close() error {
 
-	if err := ms.PersistentStorage.SaveData(ms.URLStore); err != nil {
+	if err := ms.PersistentStorager.SaveData(ms.URLStore); err != nil {
 		return err
 	}
 
-	if err := ms.PersistentStorage.Close(); err != nil {
+	if err := ms.PersistentStorager.Close(); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (ms *MemoryStorage) MultipleShort(input []entity.URLBatchInput, userID string) ([]entity.URLBatchResponse, error) {
+	var resOutput entity.URLBatchResponse
+	var responseBatch []entity.URLBatchResponse
+
+	for _, v := range input {
+		res, err := ms.SaveURL(v.URL, userID)
+		if err != nil {
+			return nil, err
+		}
+		resOutput.CorrelID = v.CorrelID
+		resOutput.URL = res
+		responseBatch = append(responseBatch, resOutput)
+
+	}
+
+	return responseBatch, nil
+
 }

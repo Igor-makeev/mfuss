@@ -113,7 +113,7 @@ func generateCook() string {
 }
 
 func checkCook(id string) bool {
-	isvalid := false
+
 	var (
 		data []byte
 		err  error
@@ -122,16 +122,14 @@ func checkCook(id string) bool {
 
 	if err != nil {
 
-		return isvalid
+		return false
 	}
+
 	h := hmac.New(sha256.New, []byte(secretKey))
 	h.Write(data[:5])
 	sign := h.Sum(nil)
-	if hmac.Equal(sign, data[5:]) {
-		isvalid = true
-		return isvalid
-	}
-	return isvalid
+
+	return hmac.Equal(sign, data[5:])
 }
 
 func getUserID(c *gin.Context) (string, error) {
@@ -156,6 +154,6 @@ func genetareUserID() string {
 	for i := range buf {
 		buf[i] = userIDBytes[mrand.Intn(len(userIDBytes))]
 	}
-	res := string(buf)
-	return res
+
+	return string(buf)
 }

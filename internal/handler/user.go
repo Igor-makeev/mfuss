@@ -9,6 +9,7 @@ import (
 func (h *Handler) GetUSERURLS(c *gin.Context) {
 	userID, err := getUserID(c)
 	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusUnauthorized)
 		return
 	}
 

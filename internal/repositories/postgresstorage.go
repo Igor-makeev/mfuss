@@ -5,6 +5,7 @@ import (
 	"mfuss/configs"
 	"mfuss/internal/entity"
 	"mfuss/internal/utilits"
+	"mfuss/schema"
 	"sync"
 
 	"github.com/jackc/pgx/v5"
@@ -17,14 +18,6 @@ type PostgresStorage struct {
 	sync.Mutex
 }
 
-var schema = `
-CREATE TABLE url_store (
-    ID text,
-    Result text,
-    Origin text,
-	User_ID text
-);`
-
 func NewPostgresStorage(cfg *configs.Config) (*PostgresStorage, error) {
 	conn, err := pgx.Connect(context.Background(), cfg.DBDSN)
 	if err != nil {
@@ -32,7 +25,8 @@ func NewPostgresStorage(cfg *configs.Config) (*PostgresStorage, error) {
 		return nil, err
 	}
 
-	conn.Exec(context.Background(), schema)
+	conn.Exec(context.Background(), schema.Schema)
+	conn.Exec(context.Background(), schema.Index)
 
 	ps := &PostgresStorage{
 		DB:  conn,
@@ -46,7 +40,7 @@ func (ps *PostgresStorage) GetAllURLS(userID string) []entity.ShortURL {
 	defer ps.Unlock()
 	urls := make([]entity.ShortURL, 0)
 
-	rows, err := ps.DB.Query(context.Background(), `select id,result,origin,user_id from url_store where user_id=$1;`, userID)
+	rows, err := ps.DB.Query(context.Background(), `select id,result,origin,user_id from url_store where user_id=$1 ;`, userID)
 	if err != nil {
 		return nil
 	}
@@ -81,13 +75,19 @@ func (ps *PostgresStorage) GetShortURL(id, userID string) (sURL entity.ShortURL,
 func (ps *PostgresStorage) SaveURL(input, userID string) (string, error) {
 	ps.Lock()
 	defer ps.Unlock()
-
+	var url entity.ShortURL
 	id := utilits.GenetareID()
 	res := ps.cfg.BaseURL + "/" + id
-	if _, err := ps.DB.Exec(context.Background(), `insert into url_store(id, result,origin,user_id) values ($1, $2,$3,$4);`, id, res, input, userID); err != nil {
+	if err := ps.DB.QueryRow(context.Background(), `insert into url_store(id, result,origin,user_id) values ($1, $2,$3,$4) on conflict (origin) do update set origin =EXCLUDED.origin returning *;`, id, res, input, userID).Scan(&url.ID, &url.ResultURL, &url.Origin, &url.UserID); err != nil {
+
 		return "", err
 	}
-	return res, nil
+
+	if url.ID != id {
+		return url.ResultURL, utilits.URLConflict{Str: url.Origin}
+	}
+
+	return url.ResultURL, nil
 
 }
 
@@ -95,10 +95,29 @@ func (ps *PostgresStorage) Close() error {
 	if _, err := ps.DB.Exec(context.Background(), "Drop table url_store;"); err != nil {
 		return err
 	}
-	// TODO fix this moment with drop
+
 	if err := ps.DB.Close(context.Background()); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (ps *PostgresStorage) MultipleShort(input []entity.URLBatchInput, userID string) ([]entity.URLBatchResponse, error) {
+	var resOutput entity.URLBatchResponse
+	var responseBatch []entity.URLBatchResponse
+
+	for _, v := range input {
+		res, err := ps.SaveURL(v.URL, userID)
+		if err != nil {
+			return nil, err
+		}
+		resOutput.CorrelID = v.CorrelID
+		resOutput.URL = res
+		responseBatch = append(responseBatch, resOutput)
+
+	}
+
+	return responseBatch, nil
+
 }

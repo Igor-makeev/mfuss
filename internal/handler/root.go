@@ -4,17 +4,18 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"mfuss/internal/utilits"
 	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 func (h *Handler) PostHandler(c *gin.Context) {
 	userID, err := getUserID(c)
 	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
@@ -31,32 +32,38 @@ func (h *Handler) PostHandler(c *gin.Context) {
 		return
 	}
 
-	shortURLId, err := h.Repo.URLStorage.SaveURL(string(body), userID)
+	shortURL, err := h.Repo.URLStorager.SaveURL(string(body), userID)
 
-	if err != nil {
-		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
-		return
+	switch {
+	case err != nil:
+		if _, ok := err.(utilits.URLConflict); ok {
+			if err = utilits.CheckURL(shortURL); err != nil {
+				http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURL), http.StatusInternalServerError)
+			}
+			c.Status(http.StatusConflict)
+			c.Writer.Write([]byte(shortURL))
+			return
+		} else {
+			http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	default:
+		c.Status(http.StatusCreated)
+		c.Writer.Write([]byte(shortURL))
 	}
-
-	if _, err := url.ParseRequestURI(shortURLId); err != nil {
-		http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURLId), http.StatusInternalServerError)
-		return
-	}
-	logrus.Println("postH", userID)
-	c.Writer.WriteHeader(http.StatusCreated)
-	c.Writer.Write([]byte(shortURLId))
 
 }
 
 func (h *Handler) GetURLHandler(c *gin.Context) {
 	userID, err := getUserID(c)
 	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusUnauthorized)
 		return
 	}
-	logrus.Println(userID)
+
 	id := c.Param("id")
-	logrus.Println(id)
-	sURL, err := h.Repo.URLStorage.GetShortURL(id, userID)
+
+	sURL, err := h.Repo.URLStorager.GetShortURL(id, userID)
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusBadGateway)
 		return
@@ -64,7 +71,7 @@ func (h *Handler) GetURLHandler(c *gin.Context) {
 
 	c.Writer.Header().Set("Location", sURL.Origin)
 
-	c.Writer.WriteHeader(http.StatusTemporaryRedirect)
+	c.Status(http.StatusTemporaryRedirect)
 
 }
 
@@ -72,12 +79,12 @@ func (h *Handler) GetPingHandler(c *gin.Context) {
 	if h.Repo.DB != nil {
 		err := h.Repo.DB.Ping(context.Background())
 		if err != nil {
-			c.Writer.WriteHeader(http.StatusInternalServerError)
+			c.Status(http.StatusInternalServerError)
 		}
-		c.Writer.WriteHeader(http.StatusOK)
+		c.Status(http.StatusOK)
 	} else {
 		c.Writer.Write([]byte("no "))
-		c.Writer.WriteHeader(http.StatusInternalServerError)
+		c.Status(http.StatusInternalServerError)
 	}
 
 }

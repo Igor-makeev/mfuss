@@ -69,9 +69,7 @@ func (h *Handler) GetURLHandler(c *gin.Context) {
 		return
 	}
 
-	c.Writer.Header().Set("Location", sURL.Origin)
-
-	c.Status(http.StatusTemporaryRedirect)
+	c.Redirect(http.StatusTemporaryRedirect, sURL.Origin)
 
 }
 

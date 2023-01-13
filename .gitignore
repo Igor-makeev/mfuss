@@ -1,3 +1,5 @@
+
+*.env
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -19,7 +21,8 @@ cmd/shortener/shortener
 vendor/
 
 # IDEs directories
-.idea
-.vscode
+*.idea
+*.vscode
+*.txt
 
-.txt
+

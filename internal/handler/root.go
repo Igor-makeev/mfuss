@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"context"
 	"fmt"
 	"io"
+	"mfuss/internal/utilits"
 	"net/http"
 	"net/url"
 	"strings"
@@ -11,6 +13,11 @@ import (
 )
 
 func (h *Handler) PostHandler(c *gin.Context) {
+	userID, err := getUserID(c)
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusUnauthorized)
+		return
+	}
 
 	body, err := io.ReadAll(c.Request.Body)
 
@@ -25,36 +32,57 @@ func (h *Handler) PostHandler(c *gin.Context) {
 		return
 	}
 
-	shortURLId, err := h.Repo.URLStorage.SaveURL(string(body))
+	shortURL, err := h.Repo.URLStorager.SaveURL(string(body), userID)
 
-	if err != nil {
-		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
-		return
+	switch {
+	case err != nil:
+		if _, ok := err.(utilits.URLConflict); ok {
+			if err = utilits.CheckURL(shortURL); err != nil {
+				http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURL), http.StatusInternalServerError)
+			}
+			c.Status(http.StatusConflict)
+			c.Writer.Write([]byte(shortURL))
+			return
+		} else {
+			http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	default:
+		c.Status(http.StatusCreated)
+		c.Writer.Write([]byte(shortURL))
 	}
-
-	short := fmt.Sprintf("%v/%v", h.Repo.Config.BaseURL, shortURLId)
-
-	if _, err := url.ParseRequestURI(short); err != nil {
-		http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", short), http.StatusInternalServerError)
-		return
-	}
-
-	c.Writer.WriteHeader(http.StatusCreated)
-	c.Writer.Write([]byte(short))
 
 }
 
 func (h *Handler) GetURLHandler(c *gin.Context) {
-
-	id := c.Param("id")
-
-	sURL, err := h.Repo.URLStorage.GetShortURL(id)
+	userID, err := getUserID(c)
 	if err != nil {
-		http.Error(c.Writer, err.Error(), http.StatusNotFound)
+		http.Error(c.Writer, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
-	c.Writer.Header().Set("Location", sURL.Origin)
-	c.Writer.WriteHeader(http.StatusTemporaryRedirect)
+	id := c.Param("id")
+
+	sURL, err := h.Repo.URLStorager.GetShortURL(id, userID)
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusBadGateway)
+		return
+	}
+
+	c.Redirect(http.StatusTemporaryRedirect, sURL.Origin)
+
+}
+
+func (h *Handler) GetPingHandler(c *gin.Context) {
+	if h.Repo.DB != nil {
+		err := h.Repo.DB.Ping(context.Background())
+		if err != nil {
+			c.Status(http.StatusInternalServerError)
+		}
+		c.Status(http.StatusOK)
+	} else {
+		c.Writer.Write([]byte("no "))
+		c.Status(http.StatusInternalServerError)
+	}
 
 }

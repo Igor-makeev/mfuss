@@ -17,9 +17,9 @@ import (
 
 func TestHandler_PostHandler(t *testing.T) {
 	cfg := configs.Config{SrvAddr: "localhost:8080", BaseURL: "http://localhost:8080"}
-	store := mock.NewStorageMock()
+	store := mock.NewStorageMock(&cfg)
 	rep := &repositories.Repository{
-		URLStorage: store,
+		URLStorager: store,
 
 		Config: cfg,
 	}
@@ -30,10 +30,10 @@ func TestHandler_PostHandler(t *testing.T) {
 	rr := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(rr)
 	c.Request = req
-
+	c.Set("userID", "test")
 	h := NewHandler(rep)
-	h.PostHandler(c)
 
+	h.PostHandler(c)
 	result := rr.Result()
 	assert.Equal(t, http.StatusCreated, result.StatusCode, "wrong status code")
 
@@ -48,17 +48,19 @@ func TestHandler_PostHandler(t *testing.T) {
 }
 
 func TestHandler_GetURLHandler(t *testing.T) {
+
 	cfg := configs.Config{SrvAddr: "localhost:8080", BaseURL: "http://localhost:8080"}
-	store := mock.NewStorageMock()
+	store := mock.NewStorageMock(&cfg)
 	rep := &repositories.Repository{
-		URLStorage: store,
-		Config:     cfg,
+		URLStorager: store,
+		Config:      cfg,
 	}
 	rr := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(rr)
-
+	c.Set("userID", "test")
 	h := NewHandler(rep)
-	h.Repo.URLStorage.SaveURL("https://kanobu.ru/")
+
+	h.Repo.URLStorager.SaveURL("https://kanobu.ru/", "")
 	req, err := http.NewRequest(http.MethodGet, "http://localhost:8080/0", nil)
 	if err != nil {
 		t.Fatal(err)
@@ -68,19 +70,7 @@ func TestHandler_GetURLHandler(t *testing.T) {
 	c.AddParam("id", "0")
 
 	h.GetURLHandler(c)
-	go http.ListenAndServe("127.0.0.1:8080", h.Router)
 
-	client := http.Client{
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse
-		},
-	}
-	res, err := client.Do(req)
-
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer res.Body.Close()
 	expectedHeader := "https://kanobu.ru/"
 	result := rr.Result()
 	defer result.Body.Close()
@@ -88,7 +78,7 @@ func TestHandler_GetURLHandler(t *testing.T) {
 	assert.Equalf(t, expectedHeader, resHeader, "handler return wrong header: got %v want %v", resHeader, expectedHeader)
 
 	expectedStatusCode := http.StatusTemporaryRedirect
-	resStatus := res.StatusCode
+	resStatus := result.StatusCode
 	assert.Equalf(t, expectedStatusCode, resStatus, "handler return wrong status code: got %v want %v", resStatus, expectedStatusCode)
 
 }

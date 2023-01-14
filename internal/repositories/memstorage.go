@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-type PersistentStorager interface {
+type Dumper interface {
 	SaveData(ms map[string]entity.ShortURL) error
 	LoadData(ms map[string]entity.ShortURL) error
 	Close() error
@@ -18,22 +18,19 @@ type MemoryStorage struct {
 	sync.Mutex
 	URLStore map[string]entity.ShortURL
 	cfg      configs.Config
-	PersistentStorager
+	Dumper
 }
 
-func NewMemoryStorage(cfg *configs.Config) (*MemoryStorage, error) {
+func NewMemoryStorage(cfg *configs.Config, d Dumper) (*MemoryStorage, error) {
 
-	ps, err := NewFileStorage(cfg.FileStoragePath)
-	if err != nil {
-		return nil, err
-	}
 	ms := &MemoryStorage{
-		URLStore:           make(map[string]entity.ShortURL),
-		PersistentStorager: ps,
-		cfg:                *cfg,
+		URLStore: make(map[string]entity.ShortURL),
+		Dumper:   d,
+		cfg:      *cfg,
 	}
 
-	if err := ps.LoadData(ms.URLStore); err != nil {
+	err := d.LoadData(ms.URLStore)
+	if err != nil {
 		return nil, err
 	}
 
@@ -82,11 +79,11 @@ func (ms *MemoryStorage) SaveURL(input, userID string) (string, error) {
 
 func (ms *MemoryStorage) Close() error {
 
-	if err := ms.PersistentStorager.SaveData(ms.URLStore); err != nil {
+	if err := ms.Dumper.SaveData(ms.URLStore); err != nil {
 		return err
 	}
 
-	if err := ms.PersistentStorager.Close(); err != nil {
+	if err := ms.Dumper.Close(); err != nil {
 		return err
 	}
 	return nil

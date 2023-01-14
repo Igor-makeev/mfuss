@@ -25,7 +25,11 @@ type Repository struct {
 func NewRepository(cfg *configs.Config) (*Repository, error) {
 
 	if cfg.DBDSN == "" {
-		ms, err := NewMemoryStorage(cfg)
+		d, err := NewDump(cfg.FileStoragePath)
+		if err != nil {
+			return nil, err
+		}
+		ms, err := NewMemoryStorage(cfg, d)
 		if err != nil {
 			return nil, err
 		}

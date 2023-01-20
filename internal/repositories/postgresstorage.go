@@ -121,3 +121,12 @@ func (ps *PostgresStorage) MultipleShort(input []entity.URLBatchInput, userID st
 	return responseBatch, nil
 
 }
+
+func (ps *PostgresStorage) MarkAsDeleted(arr []string, b *Buffer) error {
+	for _, v := range arr {
+		b.Write(v)
+	}
+
+	return nil
+
+}

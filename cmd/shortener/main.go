@@ -29,6 +29,7 @@ func main() {
 	go func() {
 
 		if err := srv.ListenAndServe(); err != nil {
+
 			logrus.Fatalf("failed to listen and serve: %+v", err.Error())
 		}
 	}()

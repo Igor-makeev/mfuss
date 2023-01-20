@@ -51,6 +51,15 @@ func (store *StorageMock) MultipleShort(input []entity.URLBatchInput, userID str
 	return nil, nil
 }
 
+func (store *StorageMock) MarkAsDeleted(arr []string, b *Buffer) error {
+	for _, v := range arr {
+		b.Write(v)
+	}
+
+	return nil
+
+}
+
 type PersistentStorageMock struct {
 }
 

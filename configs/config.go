@@ -21,7 +21,7 @@ func NewConfig() *Config {
 	flag.StringVar(&cfg.SrvAddr, "a", "localhost:8080", "server addres to listen on")
 	flag.StringVar(&cfg.BaseURL, "b", "http://localhost:8080", "shortener base URL")
 	flag.StringVar(&cfg.FileStoragePath, "f", "file_storage.txt", "path to storage file")
-	flag.StringVar(&cfg.DBDSN, "d", "", "database adress")
+	flag.StringVar(&cfg.DBDSN, "d", "postgres://postgres:qwerty@localhost:5436/postgres?sslmode=disable", "database adress")
 
 	flag.Parse()
 

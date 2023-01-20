@@ -30,6 +30,7 @@ func NewHandler(rep *repositories.Repository) *Handler {
 			api.POST("/shorten/batch", handler.MultipleShortHandler)
 			api.POST("/shorten", GzipUnpack(), handler.PostJSONHandler)
 			api.GET("/user/urls", handler.GetUSERURLS)
+			api.DELETE("/user/urls", URLSIDCheck(), handler.DeleteUrls)
 		}
 	}
 

@@ -34,24 +34,27 @@ func (h *Handler) PostHandler(c *gin.Context) {
 
 	shortURL, err := h.Repo.URLStorager.SaveURL(string(body), userID)
 
-	switch {
-	case err != nil:
-		if _, ok := err.(utilits.URLConflict); ok {
-			if err = utilits.CheckURL(shortURL); err != nil {
-				http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURL), http.StatusInternalServerError)
-			}
-			c.Status(http.StatusConflict)
-			c.Writer.Write([]byte(shortURL))
-			return
-		} else {
+	if err != nil {
+		_, ok := err.(utilits.URLConflict)
+
+		if !ok {
 			http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 			return
 		}
-	default:
-		c.Status(http.StatusCreated)
+
+		if err := utilits.CheckURL(shortURL); err != nil {
+			http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURL), http.StatusInternalServerError)
+		}
+
+		c.Status(http.StatusConflict)
 		c.Writer.Write([]byte(shortURL))
 	}
 
+	if err := utilits.CheckURL(shortURL); err != nil {
+		http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURL), http.StatusInternalServerError)
+	}
+	c.Status(http.StatusCreated)
+	c.Writer.Write([]byte(shortURL))
 }
 
 func (h *Handler) GetURLHandler(c *gin.Context) {

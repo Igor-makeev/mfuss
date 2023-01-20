@@ -80,3 +80,39 @@ func (h *Handler) MultipleShortHandler(c *gin.Context) {
 	c.JSON(http.StatusCreated, responseBatch)
 
 }
+
+func (h *Handler) GetUSERURLS(c *gin.Context) {
+	userID, err := getUserID(c)
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	urls := h.Repo.GetAllURLS(userID)
+	for i, v := range urls {
+		urls[i].ResultURL = h.Repo.Config.BaseURL + "/" + v.ID
+	}
+	if len(urls) == 0 {
+		c.Status(http.StatusNoContent)
+		return
+	}
+	c.JSON(http.StatusOK, urls)
+
+}
+
+func (h *Handler) DeleteUrls(c *gin.Context) {
+
+	_, err := getUserID(c)
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	inputArray, err := getUrlsArray(c)
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
+		return
+	}
+	h.Repo.MarkAsDeleted(inputArray, h.Repo.Buffer)
+	c.Status(http.StatusAccepted)
+}

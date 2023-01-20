@@ -107,3 +107,12 @@ func (ms *MemoryStorage) MultipleShort(input []entity.URLBatchInput, userID stri
 	return responseBatch, nil
 
 }
+
+func (ms *MemoryStorage) MarkAsDeleted(arr []string, b *Buffer) error {
+	for _, v := range arr {
+		b.Write(v)
+	}
+
+	return nil
+
+}

@@ -13,12 +13,14 @@ type URLStorager interface {
 	GetAllURLS(userID string) []entity.ShortURL
 	GetShortURL(id, userID string) (sURL entity.ShortURL, er error)
 	MultipleShort(input []entity.URLBatchInput, userID string) ([]entity.URLBatchResponse, error)
+	MarkAsDeleted(arr []string, b *Buffer) error
 	Close() error
 }
 
 type Repository struct {
 	URLStorager
 	Config configs.Config
+	Buffer *Buffer
 	DB     *pgx.Conn
 }
 
@@ -36,6 +38,7 @@ func NewRepository(cfg *configs.Config) (*Repository, error) {
 		return &Repository{
 			URLStorager: ms,
 			Config:      *cfg,
+			Buffer:      NewBuffer(),
 			DB:          nil,
 		}, nil
 	}
@@ -47,6 +50,7 @@ func NewRepository(cfg *configs.Config) (*Repository, error) {
 	return &Repository{
 		URLStorager: ps,
 		Config:      *cfg,
+		Buffer:      NewBuffer(),
 		DB:          ps.DB,
 	}, nil
 

@@ -5,7 +5,9 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
+	"fmt"
 	mrand "math/rand"
 	"net/http"
 	"strings"
@@ -21,6 +23,7 @@ const (
 	secretKey          = "secret key"
 	userIDBytes        = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	userCtx            = "userID"
+	urlIdSliceCtx      = "input_id"
 )
 
 type gzipWriter struct {
@@ -84,12 +87,25 @@ func UserCheck() gin.HandlerFunc {
 	}
 }
 
-func (g *gzipWriter) WriteString(s string) (int, error) {
-	return g.writer.Write([]byte(s))
-}
+func URLSIDCheck() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var input []string
 
-func (g *gzipWriter) Write(data []byte) (int, error) {
-	return g.writer.Write(data)
+		err := json.NewDecoder(c.Request.Body).Decode(&input)
+		if err != nil {
+			http.Error(c.Writer, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		for _, id := range input {
+			if len([]rune(id)) != 5 {
+				http.Error(c.Writer, fmt.Sprintf("invalid url id: %v", id), http.StatusBadRequest)
+				return
+			}
+		}
+		c.Set(urlIdSliceCtx, input)
+		c.Next()
+	}
 }
 
 func shouldCompress(req *http.Request) bool {
@@ -147,6 +163,23 @@ func getUserID(c *gin.Context) (string, error) {
 	}
 
 	return idstring, nil
+}
+
+func getUrlsArray(c *gin.Context) ([]string, error) {
+	ids, ok := c.Get(urlIdSliceCtx)
+
+	if !ok {
+
+		return nil, errors.New("data array not found")
+	}
+
+	idsArray, ok := ids.([]string)
+	if !ok {
+
+		return nil, errors.New("data array is of ivalid type")
+	}
+
+	return idsArray, nil
 }
 
 func genetareUserID() string {

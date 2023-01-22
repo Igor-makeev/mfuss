@@ -18,12 +18,7 @@ type PostgresStorage struct {
 	sync.Mutex
 }
 
-func NewPostgresStorage(cfg *configs.Config) (*PostgresStorage, error) {
-	conn, err := pgx.Connect(context.Background(), cfg.DBDSN)
-	if err != nil {
-		logrus.Printf("Unable to connect to database: %v\n", err)
-		return nil, err
-	}
+func NewPostgresStorage(cfg *configs.Config, conn *pgx.Conn) *PostgresStorage {
 
 	conn.Exec(context.Background(), schema.Schema)
 	conn.Exec(context.Background(), schema.Index)
@@ -32,7 +27,16 @@ func NewPostgresStorage(cfg *configs.Config) (*PostgresStorage, error) {
 		DB:  conn,
 		cfg: *cfg,
 	}
-	return ps, err
+	return ps
+}
+
+func InitConnectToDB(cfg *configs.Config) (*pgx.Conn, error) {
+	conn, err := pgx.Connect(context.Background(), cfg.DBDSN)
+	if err != nil {
+		logrus.Printf("Unable to connect to database: %v\n", err)
+		return nil, err
+	}
+	return conn, err
 }
 
 func (ps *PostgresStorage) GetAllURLS(userID string) []entity.ShortURL {

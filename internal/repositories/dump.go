@@ -51,10 +51,8 @@ func (d *Dump) LoadData(ms map[string]entity.ShortURL) error {
 		ms[URL.ID] = URL
 
 	}
-	if err := d.scanner.Err(); err != nil {
-		return err
-	}
-	return nil
+
+	return d.scanner.Err()
 }
 
 func (d *Dump) WriteURL(URL *entity.ShortURL) error {

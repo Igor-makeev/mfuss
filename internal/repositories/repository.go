@@ -39,3 +39,21 @@ func (rep *Repository) Close() error {
 
 	return nil
 }
+
+func InitURLstorage(cfg *configs.Config) (URLStorager, error) {
+	if cfg.DBDSN == "" {
+		dump, err := NewDump(cfg.FileStoragePath)
+		if err != nil {
+			return nil, err
+		}
+		ms := NewMemoryStorage(cfg, dump)
+
+		return ms, ms.LoadFromDump()
+	}
+	conn, err := InitConnectToDB(cfg)
+	if err != nil {
+		return nil, err
+	}
+	return NewPostgresStorage(cfg, conn), nil
+
+}

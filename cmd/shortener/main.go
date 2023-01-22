@@ -16,8 +16,26 @@ import (
 func main() {
 
 	cfg := configs.NewConfig()
+	var urlstorage repositories.URLStorager
 
-	rep, err := repositories.NewRepository(cfg)
+	if cfg.DBDSN == "" {
+		dump, err := repositories.NewDump(cfg.FileStoragePath)
+		if err != nil {
+			logrus.Fatal(err)
+		}
+		urlstorage, err = repositories.NewMemoryStorage(cfg, dump)
+		if err != nil {
+			logrus.Fatal(err)
+		}
+	} else {
+		var err error
+		urlstorage, err = repositories.NewPostgresStorage(cfg)
+		if err != nil {
+			logrus.Fatal(err)
+		}
+	}
+
+	rep, err := repositories.NewRepository(cfg, urlstorage)
 	if err != nil {
 		logrus.Fatal(err)
 	}

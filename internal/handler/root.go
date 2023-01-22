@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"mfuss/internal/utilits"
@@ -77,15 +76,10 @@ func (h *Handler) GetURLHandler(c *gin.Context) {
 }
 
 func (h *Handler) GetPingHandler(c *gin.Context) {
-	if h.Repo.DB != nil {
-		err := h.Repo.DB.Ping(context.Background())
-		if err != nil {
-			c.Status(http.StatusInternalServerError)
-		}
-		c.Status(http.StatusOK)
-	} else {
-		c.Writer.Write([]byte("no "))
-		c.Status(http.StatusInternalServerError)
+	if err := h.Repo.URLStorager.Ping(); err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+
 	}
+	c.Status(http.StatusOK)
 
 }

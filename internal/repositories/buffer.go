@@ -10,6 +10,7 @@ type Buffer struct {
 	buf            []string
 	updateInterval time.Duration
 	sync.Mutex
+	sync.WaitGroup
 }
 
 func NewBuffer() *Buffer {
@@ -21,9 +22,14 @@ func NewBuffer() *Buffer {
 	return bf
 }
 
-func (b *Buffer) Write(str string) {
+func (b *Buffer) Write(data []string) {
+	b.WaitGroup.Add(1)
+	go func() {
+		for _, v := range data {
+			b.stream <- v
+		}
 
-	b.stream <- str
+	}()
 
 }
 

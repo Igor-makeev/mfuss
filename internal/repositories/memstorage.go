@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"errors"
 	"fmt"
 	"mfuss/configs"
 	"mfuss/internal/entity"
@@ -108,10 +109,13 @@ func (ms *MemoryStorage) MultipleShort(input []entity.URLBatchInput, userID stri
 
 }
 
-func (ms *MemoryStorage) MarkAsDeleted(arr []string, b *Buffer) error {
-	for _, v := range arr {
-		b.Write(v)
-	}
+func (ms *MemoryStorage) Ping() error {
+
+	return errors.New("no db connection")
+
+}
+
+func (ms *MemoryStorage) MarkAsDeleted(arr []string, id string) error {
 
 	return nil
 

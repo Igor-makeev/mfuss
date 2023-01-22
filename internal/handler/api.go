@@ -102,7 +102,7 @@ func (h *Handler) GetUSERURLS(c *gin.Context) {
 
 func (h *Handler) DeleteUrls(c *gin.Context) {
 
-	_, err := getUserID(c)
+	id, err := getUserID(c)
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusUnauthorized)
 		return
@@ -113,6 +113,7 @@ func (h *Handler) DeleteUrls(c *gin.Context) {
 		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
 		return
 	}
-	h.Repo.MarkAsDeleted(inputArray, h.Repo.Buffer)
+	_ = h.Repo.URLStorager.MarkAsDeleted(inputArray, id)
+
 	c.Status(http.StatusAccepted)
 }

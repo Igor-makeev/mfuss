@@ -71,6 +71,7 @@ func (h *Handler) GetURLHandler(c *gin.Context) {
 		http.Error(c.Writer, err.Error(), http.StatusBadGateway)
 		return
 	}
+
 	if sURL.IsDelited {
 		c.Status(http.StatusGone)
 	} else {

@@ -18,12 +18,7 @@ type PostgresStorage struct {
 	sync.Mutex
 }
 
-func NewPostgresStorage(cfg *configs.Config) (*PostgresStorage, error) {
-	conn, err := pgx.Connect(context.Background(), cfg.DBDSN)
-	if err != nil {
-		logrus.Printf("Unable to connect to database: %v\n", err)
-		return nil, err
-	}
+func NewPostgresStorage(cfg *configs.Config, conn *pgx.Conn) *PostgresStorage {
 
 	conn.Exec(context.Background(), schema.Schema)
 	conn.Exec(context.Background(), schema.Index)
@@ -32,7 +27,16 @@ func NewPostgresStorage(cfg *configs.Config) (*PostgresStorage, error) {
 		DB:  conn,
 		cfg: *cfg,
 	}
-	return ps, err
+	return ps
+}
+
+func NewPostgresClient(cfg *configs.Config) (*pgx.Conn, error) {
+	conn, err := pgx.Connect(context.Background(), cfg.DBDSN)
+	if err != nil {
+		logrus.Printf("Unable to connect to database: %v\n", err)
+		return nil, err
+	}
+	return conn, err
 }
 
 func (ps *PostgresStorage) GetAllURLS(userID string) []entity.ShortURL {
@@ -78,7 +82,7 @@ func (ps *PostgresStorage) SaveURL(input, userID string) (string, error) {
 	var url entity.ShortURL
 	id := utilits.GenetareID()
 	res := ps.cfg.BaseURL + "/" + id
-	if err := ps.DB.QueryRow(context.Background(), `insert into url_store(id, result,origin,user_id) values ($1, $2,$3,$4) on conflict (origin) do update set origin =EXCLUDED.origin returning *;`, id, res, input, userID).Scan(&url.ID, &url.ResultURL, &url.Origin, &url.UserID); err != nil {
+	if err := ps.DB.QueryRow(context.Background(), `insert into url_store(id, result,origin,user_id,Is_deleted) values ($1, $2,$3,$4,$5) on conflict (origin) do update set origin =EXCLUDED.origin returning *;`, id, res, input, userID, false).Scan(&url.ID, &url.ResultURL, &url.Origin, &url.UserID, &url.IsDelited); err != nil {
 
 		return "", err
 	}
@@ -119,5 +123,24 @@ func (ps *PostgresStorage) MultipleShort(input []entity.URLBatchInput, userID st
 	}
 
 	return responseBatch, nil
+
+}
+
+func (ps *PostgresStorage) Ping() error {
+	err := ps.DB.Ping(context.Background())
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
+
+func (ps *PostgresStorage) MarkAsDeleted(arr []string, id string) {
+	ps.Lock()
+	defer ps.Unlock()
+	_, err := ps.DB.Exec(context.Background(), "UPDATE url_store SET Is_deleted = true WHERE ID IN $1 AND User_ID = $2", arr, id)
+	if err != nil {
+		logrus.Print(err)
+	}
 
 }

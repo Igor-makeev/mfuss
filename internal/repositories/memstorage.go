@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"errors"
 	"fmt"
 	"mfuss/configs"
 	"mfuss/internal/entity"
@@ -21,22 +22,20 @@ type MemoryStorage struct {
 	Dumper
 }
 
-func NewMemoryStorage(cfg *configs.Config, d Dumper) (*MemoryStorage, error) {
+func NewMemoryStorage(cfg *configs.Config, dumper Dumper) *MemoryStorage {
 
-	ms := &MemoryStorage{
+	return &MemoryStorage{
 		URLStore: make(map[string]entity.ShortURL),
-		Dumper:   d,
+		Dumper:   dumper,
 		cfg:      *cfg,
 	}
 
-	err := d.LoadData(ms.URLStore)
-	if err != nil {
-		return nil, err
-	}
-
-	return ms, err
-
 }
+
+func (ms *MemoryStorage) LoadFromDump() error {
+	return ms.Dumper.LoadData(ms.URLStore)
+}
+
 func (ms *MemoryStorage) GetAllURLS(userID string) []entity.ShortURL {
 	ms.Lock()
 	defer ms.Unlock()
@@ -83,10 +82,7 @@ func (ms *MemoryStorage) Close() error {
 		return err
 	}
 
-	if err := ms.Dumper.Close(); err != nil {
-		return err
-	}
-	return nil
+	return ms.Dumper.Close()
 }
 
 func (ms *MemoryStorage) MultipleShort(input []entity.URLBatchInput, userID string) ([]entity.URLBatchResponse, error) {
@@ -105,5 +101,24 @@ func (ms *MemoryStorage) MultipleShort(input []entity.URLBatchInput, userID stri
 	}
 
 	return responseBatch, nil
+
+}
+
+func (ms *MemoryStorage) Ping() error {
+
+	return errors.New("no db connection")
+
+}
+
+func (ms *MemoryStorage) MarkAsDeleted(arr []string, id string) {
+	ms.Lock()
+	defer ms.Unlock()
+	for k, v := range ms.URLStore {
+		for _, e := range arr {
+			if e == k && id == v.UserID {
+				v.IsDelited = true
+			}
+		}
+	}
 
 }

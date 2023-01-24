@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"mfuss/internal/utilits"
@@ -34,20 +33,24 @@ func (h *Handler) PostHandler(c *gin.Context) {
 
 	shortURL, err := h.Repo.URLStorager.SaveURL(string(body), userID)
 
-	switch {
-	case err != nil:
-		if _, ok := err.(utilits.URLConflict); ok {
-			if err = utilits.CheckURL(shortURL); err != nil {
-				http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURL), http.StatusInternalServerError)
-			}
-			c.Status(http.StatusConflict)
-			c.Writer.Write([]byte(shortURL))
-			return
-		} else {
+	if err != nil {
+		_, ok := err.(utilits.URLConflict)
+
+		if !ok {
 			http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 			return
 		}
-	default:
+
+		if err := utilits.CheckURL(shortURL); err != nil {
+			http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURL), http.StatusInternalServerError)
+		}
+
+		c.Status(http.StatusConflict)
+		c.Writer.Write([]byte(shortURL))
+	} else {
+		if err := utilits.CheckURL(shortURL); err != nil {
+			http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURL), http.StatusInternalServerError)
+		}
 		c.Status(http.StatusCreated)
 		c.Writer.Write([]byte(shortURL))
 	}
@@ -68,21 +71,19 @@ func (h *Handler) GetURLHandler(c *gin.Context) {
 		http.Error(c.Writer, err.Error(), http.StatusBadGateway)
 		return
 	}
-
-	c.Redirect(http.StatusTemporaryRedirect, sURL.Origin)
+	if sURL.IsDelited {
+		c.Status(http.StatusGone)
+	} else {
+		c.Redirect(http.StatusTemporaryRedirect, sURL.Origin)
+	}
 
 }
 
 func (h *Handler) GetPingHandler(c *gin.Context) {
-	if h.Repo.DB != nil {
-		err := h.Repo.DB.Ping(context.Background())
-		if err != nil {
-			c.Status(http.StatusInternalServerError)
-		}
-		c.Status(http.StatusOK)
-	} else {
-		c.Writer.Write([]byte("no "))
-		c.Status(http.StatusInternalServerError)
+	if err := h.Repo.URLStorager.Ping(); err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+
 	}
+	c.Status(http.StatusOK)
 
 }

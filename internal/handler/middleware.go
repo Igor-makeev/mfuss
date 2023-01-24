@@ -23,7 +23,7 @@ const (
 	secretKey          = "secret key"
 	userIDBytes        = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	userCtx            = "userID"
-	urlIdSliceCtx      = "input_id"
+	urlIDSliceCtx      = "input_id"
 )
 
 type gzipWriter struct {
@@ -103,7 +103,7 @@ func URLSIDCheck() gin.HandlerFunc {
 				return
 			}
 		}
-		c.Set(urlIdSliceCtx, input)
+		c.Set(urlIDSliceCtx, input)
 		c.Next()
 	}
 }
@@ -166,7 +166,7 @@ func getUserID(c *gin.Context) (string, error) {
 }
 
 func getUrlsArray(c *gin.Context) ([]string, error) {
-	ids, ok := c.Get(urlIdSliceCtx)
+	ids, ok := c.Get(urlIDSliceCtx)
 
 	if !ok {
 

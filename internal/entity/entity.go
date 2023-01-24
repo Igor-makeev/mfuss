@@ -25,3 +25,7 @@ type URLBatchResponse struct {
 	CorrelID string `json:"correlation_id"`
 	URL      string `json:"short_url"`
 }
+
+func (s *ShortURL) SetDeleteFlag() {
+	s.IsDelited = true
+}

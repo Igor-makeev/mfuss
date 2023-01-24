@@ -116,9 +116,9 @@ func (ms *MemoryStorage) MarkAsDeleted(arr []string, id string) {
 	for k, v := range ms.URLStore {
 		for _, e := range arr {
 			if e == k && id == v.UserID {
-				v.IsDelited = true
+				v.SetDeleteFlag()
 			}
 		}
-	}
 
+	}
 }

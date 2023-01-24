@@ -7,17 +7,19 @@ import (
 	"mfuss/internal/entity"
 	"mfuss/internal/utilits"
 	"sync"
+
+	"github.com/sirupsen/logrus"
 )
 
 type Dumper interface {
-	SaveData(ms map[string]entity.ShortURL) error
-	LoadData(ms map[string]entity.ShortURL) error
+	SaveData(ms map[string]*entity.ShortURL) error
+	LoadData(ms map[string]*entity.ShortURL) error
 	Close() error
 }
 
 type MemoryStorage struct {
 	sync.Mutex
-	URLStore map[string]entity.ShortURL
+	URLStore map[string]*entity.ShortURL
 	cfg      configs.Config
 	Dumper
 }
@@ -25,7 +27,7 @@ type MemoryStorage struct {
 func NewMemoryStorage(cfg *configs.Config, dumper Dumper) *MemoryStorage {
 
 	return &MemoryStorage{
-		URLStore: make(map[string]entity.ShortURL),
+		URLStore: make(map[string]*entity.ShortURL),
 		Dumper:   dumper,
 		cfg:      *cfg,
 	}
@@ -42,7 +44,7 @@ func (ms *MemoryStorage) GetAllURLS(userID string) []entity.ShortURL {
 	var urls []entity.ShortURL
 	for _, v := range ms.URLStore {
 		if v.UserID == userID {
-			urls = append(urls, v)
+			urls = append(urls, *v)
 		}
 	}
 	return urls
@@ -55,7 +57,7 @@ func (ms *MemoryStorage) GetShortURL(id, userID string) (sURL entity.ShortURL, e
 	s, ok := ms.URLStore[id]
 	if ok {
 
-		return s, nil
+		return *s, nil
 	}
 	return entity.ShortURL{}, fmt.Errorf("url with id=%v not found", id)
 
@@ -64,12 +66,18 @@ func (ms *MemoryStorage) GetShortURL(id, userID string) (sURL entity.ShortURL, e
 func (ms *MemoryStorage) SaveURL(input, userID string) (string, error) {
 	ms.Lock()
 	defer ms.Unlock()
+	for _, value := range ms.URLStore {
+		if value.Origin == input {
+			return value.ResultURL, utilits.URLConflict{Str: value.Origin}
+		}
+	}
 
-	url := entity.ShortURL{
+	url := &entity.ShortURL{
 		ID:     utilits.GenetareID(),
 		Origin: input,
 		UserID: userID,
 	}
+
 	url.ResultURL = ms.cfg.BaseURL + "/" + url.ID
 	ms.URLStore[url.ID] = url
 
@@ -112,13 +120,22 @@ func (ms *MemoryStorage) Ping() error {
 
 func (ms *MemoryStorage) MarkAsDeleted(arr []string) error {
 
-	for k, v := range ms.URLStore {
-		for _, e := range arr {
-			if e == k {
-				v.SetDeleteFlag()
-			}
-		}
-
+	for _, val := range arr {
+		ms.setDeletFlag(val)
+		logrus.Printf("in markasdeleted %v", ms.URLStore[val])
 	}
+
 	return nil
+}
+
+func (ms *MemoryStorage) setDeletFlag(ID string) {
+
+	for i, v := range ms.URLStore {
+		if i == ID {
+			v.SetDeleteFlag()
+
+		}
+		logrus.Printf("in setdeleteflag %v", v)
+	}
+
 }

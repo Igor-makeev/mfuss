@@ -1,5 +1,7 @@
 package entity
 
+import "github.com/sirupsen/logrus"
+
 type ShortURL struct {
 	ID        string `json:"-"`
 	ResultURL string `json:"short_url"`
@@ -28,4 +30,5 @@ type URLBatchResponse struct {
 
 func (s *ShortURL) SetDeleteFlag() {
 	s.IsDelited = true
+	logrus.Printf("in entity package %v", s)
 }

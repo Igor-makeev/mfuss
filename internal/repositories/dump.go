@@ -25,10 +25,10 @@ func NewDump(filename string) (*Dump, error) {
 	}, nil
 }
 
-func (d *Dump) SaveData(ms map[string]entity.ShortURL) error {
+func (d *Dump) SaveData(ms map[string]*entity.ShortURL) error {
 	for _, value := range ms {
 
-		err := d.WriteURL(&value)
+		err := d.WriteURL(value)
 		if err != nil {
 			return err
 		}
@@ -37,7 +37,7 @@ func (d *Dump) SaveData(ms map[string]entity.ShortURL) error {
 
 }
 
-func (d *Dump) LoadData(ms map[string]entity.ShortURL) error {
+func (d *Dump) LoadData(ms map[string]*entity.ShortURL) error {
 
 	d.scanner.Split(bufio.ScanLines)
 
@@ -48,7 +48,7 @@ func (d *Dump) LoadData(ms map[string]entity.ShortURL) error {
 		if err != nil {
 			return err
 		}
-		ms[URL.ID] = URL
+		ms[URL.ID] = &URL
 
 	}
 

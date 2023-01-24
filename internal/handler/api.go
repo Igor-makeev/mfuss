@@ -108,7 +108,7 @@ func (h *Handler) DeleteUrls(c *gin.Context) {
 		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
 		return
 	}
-	logrus.Println(inputArray)
+	logrus.Printf("input array %v", inputArray)
 	h.Repo.Queue.Write(inputArray)
 	c.Status(http.StatusAccepted)
 }

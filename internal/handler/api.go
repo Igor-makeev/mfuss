@@ -113,7 +113,6 @@ func (h *Handler) DeleteUrls(c *gin.Context) {
 		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
 		return
 	}
-	_ = h.Repo.URLStorager.MarkAsDeleted(inputArray, id)
-
+	h.Repo.URLStorager.MarkAsDeleted(inputArray, id)
 	c.Status(http.StatusAccepted)
 }

@@ -5,6 +5,7 @@ type ShortURL struct {
 	ResultURL string `json:"short_url"`
 	Origin    string `json:"original_url"`
 	UserID    string `json:"-"`
+	IsDelited bool   `json:"-"`
 }
 
 type URLInput struct {

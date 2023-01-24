@@ -30,7 +30,7 @@ func NewPostgresStorage(cfg *configs.Config, conn *pgx.Conn) *PostgresStorage {
 	return ps
 }
 
-func InitConnectToDB(cfg *configs.Config) (*pgx.Conn, error) {
+func NewPostgresClient(cfg *configs.Config) (*pgx.Conn, error) {
 	conn, err := pgx.Connect(context.Background(), cfg.DBDSN)
 	if err != nil {
 		logrus.Printf("Unable to connect to database: %v\n", err)
@@ -82,7 +82,7 @@ func (ps *PostgresStorage) SaveURL(input, userID string) (string, error) {
 	var url entity.ShortURL
 	id := utilits.GenetareID()
 	res := ps.cfg.BaseURL + "/" + id
-	if err := ps.DB.QueryRow(context.Background(), `insert into url_store(id, result,origin,user_id) values ($1, $2,$3,$4) on conflict (origin) do update set origin =EXCLUDED.origin returning *;`, id, res, input, userID).Scan(&url.ID, &url.ResultURL, &url.Origin, &url.UserID); err != nil {
+	if err := ps.DB.QueryRow(context.Background(), `insert into url_store(id, result,origin,user_id,Is_deleted) values ($1, $2,$3,$4,$5) on conflict (origin) do update set origin =EXCLUDED.origin returning *;`, id, res, input, userID, false).Scan(&url.ID, &url.ResultURL, &url.Origin, &url.UserID, &url.IsDelited); err != nil {
 
 		return "", err
 	}
@@ -135,8 +135,12 @@ func (ps *PostgresStorage) Ping() error {
 
 }
 
-func (ps *PostgresStorage) MarkAsDeleted(arr []string, id string) error {
-
-	return nil
+func (ps *PostgresStorage) MarkAsDeleted(arr []string, id string) {
+	ps.Lock()
+	defer ps.Unlock()
+	_, err := ps.DB.Exec(context.Background(), "UPDATE url_store SET Is_deleted = true WHERE ID IN $1 AND User_ID = $2", arr, id)
+	if err != nil {
+		logrus.Print(err)
+	}
 
 }

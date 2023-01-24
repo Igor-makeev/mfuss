@@ -47,13 +47,14 @@ func (h *Handler) PostHandler(c *gin.Context) {
 
 		c.Status(http.StatusConflict)
 		c.Writer.Write([]byte(shortURL))
+	} else {
+		if err := utilits.CheckURL(shortURL); err != nil {
+			http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURL), http.StatusInternalServerError)
+		}
+		c.Status(http.StatusCreated)
+		c.Writer.Write([]byte(shortURL))
 	}
 
-	if err := utilits.CheckURL(shortURL); err != nil {
-		http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURL), http.StatusInternalServerError)
-	}
-	c.Status(http.StatusCreated)
-	c.Writer.Write([]byte(shortURL))
 }
 
 func (h *Handler) GetURLHandler(c *gin.Context) {
@@ -70,8 +71,11 @@ func (h *Handler) GetURLHandler(c *gin.Context) {
 		http.Error(c.Writer, err.Error(), http.StatusBadGateway)
 		return
 	}
-
-	c.Redirect(http.StatusTemporaryRedirect, sURL.Origin)
+	if sURL.IsDelited {
+		c.Status(http.StatusGone)
+	} else {
+		c.Redirect(http.StatusTemporaryRedirect, sURL.Origin)
+	}
 
 }
 

@@ -110,15 +110,16 @@ func (ms *MemoryStorage) Ping() error {
 
 }
 
-func (ms *MemoryStorage) MarkAsDeleted(arr []string, id string) {
+func (ms *MemoryStorage) MarkAsDeleted(arr []string) error {
 	ms.Lock()
 	defer ms.Unlock()
 	for k, v := range ms.URLStore {
 		for _, e := range arr {
-			if e == k && id == v.UserID {
+			if e == k {
 				v.SetDeleteFlag()
 			}
 		}
 
 	}
+	return nil
 }

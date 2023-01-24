@@ -135,12 +135,11 @@ func (ps *PostgresStorage) Ping() error {
 
 }
 
-func (ps *PostgresStorage) MarkAsDeleted(arr []string, id string) {
-	ps.Lock()
-	defer ps.Unlock()
-	_, err := ps.DB.Exec(context.Background(), "UPDATE url_store SET Is_deleted = true WHERE ID = ANY ($1) AND User_ID = $2", arr, id)
-	if err != nil {
-		logrus.Print(err)
-	}
+func (ps *PostgresStorage) MarkAsDeleted(arr []string) error {
 
+	_, err := ps.DB.Exec(context.Background(), "UPDATE url_store SET Is_deleted = true WHERE ID = ANY ($1) ", arr)
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -51,8 +51,8 @@ func (store *StorageMock) MultipleShort(input []entity.URLBatchInput, userID str
 	return nil, nil
 }
 
-func (store *StorageMock) MarkAsDeleted(arr []string, id string) {
-
+func (store *StorageMock) MarkAsDeleted(arr []string) error {
+	return nil
 }
 func (store *StorageMock) Ping() error {
 	return nil

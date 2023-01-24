@@ -31,12 +31,13 @@ func main() {
 		}
 		urlstorage = repositories.NewPostgresStorage(cfg, conn)
 	}
-
-	rep, err := repositories.NewRepository(cfg, urlstorage)
+	queu := repositories.NewQueue()
+	rep, err := repositories.NewRepository(cfg, urlstorage, queu)
 	if err != nil {
 		logrus.Fatal(err)
 	}
-
+	ctx, cancel := context.WithCancel(context.Background())
+	go queu.Listen(ctx, rep.MarkAsDeleted, rep.Queue.UpdateInterval)
 	handler := handler.NewHandler(rep)
 
 	srv := server.NewURLServer(handler)
@@ -56,7 +57,7 @@ func main() {
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
 
 	<-quit
-
+	cancel()
 	logrus.Print("shortener shuting down.")
 
 	if rep.Close(); err != nil {

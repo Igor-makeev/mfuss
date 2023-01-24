@@ -21,7 +21,7 @@ func TestHandler_PostHandler(t *testing.T) {
 	rep := &repositories.Repository{
 		URLStorager: store,
 
-		Config: cfg,
+		Config: &cfg,
 	}
 	req, err := http.NewRequest(http.MethodPost, "http://localhost:8080/", strings.NewReader("https://kanobu.ru/"))
 	if err != nil {
@@ -53,7 +53,7 @@ func TestHandler_GetURLHandler(t *testing.T) {
 	store := mock.NewStorageMock(&cfg)
 	rep := &repositories.Repository{
 		URLStorager: store,
-		Config:      cfg,
+		Config:      &cfg,
 	}
 	rr := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(rr)

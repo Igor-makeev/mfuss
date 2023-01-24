@@ -23,7 +23,7 @@ func TestHandler_PostJSONHandler(t *testing.T) {
 
 	rep := &repositories.Repository{
 		URLStorager: store,
-		Config:      cfg,
+		Config:      &cfg,
 	}
 	exampleReq := entity.URLInput{URL: "https://kanobu.ru/"}
 	body, _ := json.Marshal(exampleReq)

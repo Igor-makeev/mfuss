@@ -11,7 +11,6 @@ type Queue struct {
 	Buf            []string
 	UpdateInterval time.Duration
 	sync.Mutex
-	sync.WaitGroup
 }
 
 func NewQueue() *Queue {
@@ -24,20 +23,21 @@ func NewQueue() *Queue {
 }
 
 func (q *Queue) Write(data []string) {
-	q.WaitGroup.Add(1)
-	go func() {
+
+	go func([]string) {
 		for _, v := range data {
 			q.stream <- v
 		}
-		q.Done()
-	}()
+
+	}(data)
 
 }
 
 func (q *Queue) CleanBuf() {
 	q.Mutex.Lock()
+	defer q.Mutex.Unlock()
 	q.Buf = q.Buf[:0]
-	q.Mutex.Unlock()
+
 }
 func (q *Queue) Close() {
 	close(q.stream)
@@ -47,14 +47,16 @@ func (q *Queue) Listen(ctx context.Context, commitData func([]string) error, int
 	ticker := time.NewTicker(interval)
 
 	for {
-		q.Wait()
+
 		select {
-		case <-q.stream:
+		case id := <-q.stream:
 			if len(q.Buf) == cap(q.Buf) {
 				commitData(q.Buf)
+				q.CleanBuf()
 			}
-			q.CleanBuf()
-			q.Buf = append(q.Buf, <-q.stream)
+
+			q.Buf = append(q.Buf, id)
+			continue
 		case <-ticker.C:
 			commitData(q.Buf)
 			q.CleanBuf()

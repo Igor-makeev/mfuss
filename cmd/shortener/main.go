@@ -36,8 +36,10 @@ func main() {
 	if err != nil {
 		logrus.Fatal(err)
 	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 	go queu.Listen(ctx, rep.MarkAsDeleted, rep.Queue.UpdateInterval)
+
 	handler := handler.NewHandler(rep)
 
 	srv := server.NewURLServer(handler)
@@ -57,7 +59,7 @@ func main() {
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
 
 	<-quit
-	cancel()
+
 	logrus.Print("shortener shuting down.")
 
 	if rep.Close(); err != nil {
@@ -66,7 +68,7 @@ func main() {
 	if err := srv.Shutdown(context.Background()); err != nil {
 		logrus.Errorf("error occured on server shuting down: %s", err.Error())
 	}
-
+	cancel()
 }
 
 func PrepareMemoryStorage(cfg *configs.Config) (*repositories.MemoryStorage, error) {

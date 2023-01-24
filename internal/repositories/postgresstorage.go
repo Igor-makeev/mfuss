@@ -137,7 +137,7 @@ func (ps *PostgresStorage) Ping() error {
 
 func (ps *PostgresStorage) MarkAsDeleted(arr []string) error {
 
-	_, err := ps.DB.Exec(context.Background(), "UPDATE url_store SET Is_deleted = true WHERE ID = ANY ($1) ", arr)
+	_, err := ps.DB.Exec(context.Background(), "UPDATE url_store SET Is_deleted = true WHERE ID = ANY ($1) and is_deleted <> true", arr)
 	if err != nil {
 		return err
 	}

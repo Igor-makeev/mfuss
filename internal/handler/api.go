@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 func (h *Handler) PostJSONHandler(c *gin.Context) {
@@ -107,6 +108,7 @@ func (h *Handler) DeleteUrls(c *gin.Context) {
 		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
 		return
 	}
+	logrus.Println(inputArray)
 	h.Repo.Queue.Write(inputArray)
 	c.Status(http.StatusAccepted)
 }

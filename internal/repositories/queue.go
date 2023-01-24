@@ -15,7 +15,7 @@ type Queue struct {
 
 func NewQueue() *Queue {
 	q := &Queue{
-		stream:         make(chan string, 30),
+		stream:         make(chan string, 50),
 		Buf:            make([]string, 0, 200),
 		UpdateInterval: 3 * time.Second}
 

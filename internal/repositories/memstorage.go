@@ -111,8 +111,7 @@ func (ms *MemoryStorage) Ping() error {
 }
 
 func (ms *MemoryStorage) MarkAsDeleted(arr []string) error {
-	ms.Lock()
-	defer ms.Unlock()
+
 	for k, v := range ms.URLStore {
 		for _, e := range arr {
 			if e == k {

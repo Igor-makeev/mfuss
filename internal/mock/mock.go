@@ -7,13 +7,13 @@ import (
 )
 
 type StorageMock struct {
-	store map[string]entity.ShortURL
+	store map[string]*entity.ShortURL
 	ID    string
 	cfg   configs.Config
 }
 
 func NewStorageMock(cfg *configs.Config) *StorageMock {
-	return &StorageMock{store: make(map[string]entity.ShortURL), ID: "0", cfg: *cfg}
+	return &StorageMock{store: make(map[string]*entity.ShortURL), ID: "0", cfg: *cfg}
 }
 
 func (store *StorageMock) SaveURL(input, userid string) (string, error) {
@@ -21,7 +21,7 @@ func (store *StorageMock) SaveURL(input, userid string) (string, error) {
 		ID:     store.ID,
 		Origin: input}
 
-	store.store[store.ID] = url
+	store.store[store.ID] = &url
 	url.ResultURL = store.cfg.BaseURL + "/" + url.ID
 	return url.ResultURL, nil
 }
@@ -30,7 +30,7 @@ func (store *StorageMock) GetAllURLS(userID string) []entity.ShortURL {
 	var urls []entity.ShortURL
 	for _, v := range store.store {
 		if v.UserID == userID {
-			urls = append(urls, v)
+			urls = append(urls, *v)
 		}
 	}
 	return urls
@@ -39,7 +39,7 @@ func (store *StorageMock) GetAllURLS(userID string) []entity.ShortURL {
 func (store *StorageMock) GetShortURL(id, idstring string) (sURL entity.ShortURL, er error) {
 	s, ok := store.store[id]
 	if ok {
-		return s, nil
+		return *s, nil
 	}
 	return entity.ShortURL{}, fmt.Errorf("url with id=%v not found", id)
 

@@ -69,6 +69,8 @@ func (ps *PostgresStorage) GetAllURLs(userID string, ctx context.Context) []enti
 }
 
 func (ps *PostgresStorage) GetShortURL(id, userID string, ctx context.Context) (sURL entity.ShortURL, er error) {
+	ps.Lock()
+	defer ps.Unlock()
 	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
 	var url entity.ShortURL
@@ -141,7 +143,7 @@ func (ps *PostgresStorage) Ping(ctx context.Context) error {
 }
 
 func (ps *PostgresStorage) MarkAsDeleted(arr []string) error {
-
+	logrus.Panicf("in storage method: %v", arr)
 	_, err := ps.DB.Exec(context.Background(), "UPDATE url_store SET Is_deleted = true WHERE ID = ANY ($1) and is_deleted <> true", arr)
 	if err != nil {
 		return err

@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"mfuss/configs"
@@ -38,9 +39,8 @@ func (ms *MemoryStorage) LoadFromDump() error {
 	return ms.Dumper.LoadData(ms.URLStore)
 }
 
-func (ms *MemoryStorage) GetAllURLS(userID string) []entity.ShortURL {
-	ms.Lock()
-	defer ms.Unlock()
+func (ms *MemoryStorage) GetAllURLs(userID string, ctx context.Context) []entity.ShortURL {
+
 	var urls []entity.ShortURL
 	for _, v := range ms.URLStore {
 		if v.UserID == userID {
@@ -50,9 +50,7 @@ func (ms *MemoryStorage) GetAllURLS(userID string) []entity.ShortURL {
 	return urls
 }
 
-func (ms *MemoryStorage) GetShortURL(id, userID string) (sURL entity.ShortURL, er error) {
-	ms.Lock()
-	defer ms.Unlock()
+func (ms *MemoryStorage) GetShortURL(id, userID string, ctx context.Context) (sURL entity.ShortURL, er error) {
 
 	s, ok := ms.URLStore[id]
 	if ok {
@@ -63,7 +61,7 @@ func (ms *MemoryStorage) GetShortURL(id, userID string) (sURL entity.ShortURL, e
 
 }
 
-func (ms *MemoryStorage) SaveURL(input, userID string) (string, error) {
+func (ms *MemoryStorage) SaveURL(input, userID string, ctx context.Context) (string, error) {
 	ms.Lock()
 	defer ms.Unlock()
 	for _, value := range ms.URLStore {
@@ -84,7 +82,7 @@ func (ms *MemoryStorage) SaveURL(input, userID string) (string, error) {
 	return url.ResultURL, nil
 }
 
-func (ms *MemoryStorage) Close() error {
+func (ms *MemoryStorage) Close(ctx context.Context) error {
 
 	if err := ms.Dumper.SaveData(ms.URLStore); err != nil {
 		return err
@@ -93,12 +91,12 @@ func (ms *MemoryStorage) Close() error {
 	return ms.Dumper.Close()
 }
 
-func (ms *MemoryStorage) MultipleShort(input []entity.URLBatchInput, userID string) ([]entity.URLBatchResponse, error) {
+func (ms *MemoryStorage) MultipleShort(input []entity.URLBatchInput, userID string, ctx context.Context) ([]entity.URLBatchResponse, error) {
 	var resOutput entity.URLBatchResponse
 	var responseBatch []entity.URLBatchResponse
 
 	for _, v := range input {
-		res, err := ms.SaveURL(v.URL, userID)
+		res, err := ms.SaveURL(v.URL, userID, ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -112,13 +110,13 @@ func (ms *MemoryStorage) MultipleShort(input []entity.URLBatchInput, userID stri
 
 }
 
-func (ms *MemoryStorage) Ping() error {
+func (ms *MemoryStorage) Ping(ctx context.Context) error {
 
 	return errors.New("no db connection")
 
 }
 
-func (ms *MemoryStorage) MarkAsDeleted(arr []string) error {
+func (ms *MemoryStorage) MarkAsDeleted(arr []string, ctx context.Context) error {
 
 	for _, val := range arr {
 		ms.setDeletFlag(val)

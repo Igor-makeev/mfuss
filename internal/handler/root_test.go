@@ -1,10 +1,12 @@
 package handler
 
 import (
+	"context"
 	"io"
 	"mfuss/configs"
-	mock "mfuss/internal/mock"
+	"mfuss/internal/mock"
 	"mfuss/internal/repositories"
+	"mfuss/internal/service"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -17,12 +19,13 @@ import (
 
 func TestHandler_PostHandler(t *testing.T) {
 	cfg := configs.Config{SrvAddr: "localhost:8080", BaseURL: "http://localhost:8080"}
-	store := mock.NewStorageMock(&cfg)
+	storage := mock.NewStorageMock(&cfg)
 	rep := &repositories.Repository{
-		URLStorager: store,
-
-		Config: &cfg,
+		URLStorager: storage,
+		Config:      &cfg,
 	}
+
+	service := service.NewService(rep)
 	req, err := http.NewRequest(http.MethodPost, "http://localhost:8080/", strings.NewReader("https://kanobu.ru/"))
 	if err != nil {
 		t.Fatal(err)
@@ -31,7 +34,7 @@ func TestHandler_PostHandler(t *testing.T) {
 	c, _ := gin.CreateTestContext(rr)
 	c.Request = req
 	c.Set("userID", "test")
-	h := NewHandler(rep)
+	h := NewHandler(service)
 
 	h.PostHandler(c)
 	result := rr.Result()
@@ -50,17 +53,18 @@ func TestHandler_PostHandler(t *testing.T) {
 func TestHandler_GetURLHandler(t *testing.T) {
 
 	cfg := configs.Config{SrvAddr: "localhost:8080", BaseURL: "http://localhost:8080"}
-	store := mock.NewStorageMock(&cfg)
+	storage := mock.NewStorageMock(&cfg)
 	rep := &repositories.Repository{
-		URLStorager: store,
+		URLStorager: storage,
 		Config:      &cfg,
 	}
+	service := service.NewService(rep)
 	rr := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(rr)
 	c.Set("userID", "test")
-	h := NewHandler(rep)
+	h := NewHandler(service)
 
-	h.Repo.URLStorager.SaveURL("https://kanobu.ru/", "")
+	h.Service.SaveURL("https://kanobu.ru/", "", context.Background())
 	req, err := http.NewRequest(http.MethodGet, "http://localhost:8080/0", nil)
 	if err != nil {
 		t.Fatal(err)

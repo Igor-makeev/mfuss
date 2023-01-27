@@ -1,10 +1,10 @@
-package repositories
+package service
 
 import (
 	"context"
 	"mfuss/configs"
-
 	"mfuss/internal/entity"
+	"mfuss/internal/repositories"
 )
 
 type URLStorager interface {
@@ -17,25 +17,24 @@ type URLStorager interface {
 	Close(ctx context.Context) error
 }
 
-type Repository struct {
+type Service struct {
 	URLStorager
-	Config *configs.Config
+	Queue *Queue
+	Cfg   *configs.Config
 }
 
-func NewRepository(cfg *configs.Config, urlstorager URLStorager) (*Repository, error) {
-
-	return &Repository{
-		URLStorager: urlstorager,
-		Config:      cfg,
-	}, nil
-
+func NewService(repos *repositories.Repository) *Service {
+	return &Service{
+		URLStorager: NewURLStorageService(repos.URLStorager),
+		Queue:       NewQueue(),
+		Cfg:         repos.Config,
+	}
 }
 
-func (rep *Repository) Close(ctx context.Context) error {
-
-	if err := rep.URLStorager.Close(ctx); err != nil {
+func (service *Service) Close(ctx context.Context) error {
+	if err := service.URLStorager.Close(ctx); err != nil {
 		return err
 	}
-
+	service.Queue.Close()
 	return nil
 }

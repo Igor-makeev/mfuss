@@ -32,7 +32,7 @@ func (h *Handler) PostHandler(c *gin.Context) {
 		return
 	}
 
-	shortURL, err := h.Repo.URLStorager.SaveURL(string(body), userID)
+	shortURL, err := h.Service.SaveURL(string(body), userID, c.Request.Context())
 
 	if err != nil {
 		_, ok := err.(utilits.URLConflict)
@@ -67,13 +67,13 @@ func (h *Handler) GetURLHandler(c *gin.Context) {
 
 	id := c.Param("id")
 
-	sURL, err := h.Repo.URLStorager.GetShortURL(id, userID)
+	sURL, err := h.Service.GetShortURL(id, userID, c.Request.Context())
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusBadGateway)
 		return
 	}
-	logrus.Printf("in handler: bool flag %v", sURL.IsDelited)
-	if sURL.IsDelited {
+	logrus.Printf("in handler: bool flag %v", sURL.IsDeleted)
+	if sURL.IsDeleted {
 		c.Status(http.StatusGone)
 	} else {
 		c.Redirect(http.StatusTemporaryRedirect, sURL.Origin)
@@ -82,7 +82,7 @@ func (h *Handler) GetURLHandler(c *gin.Context) {
 }
 
 func (h *Handler) GetPingHandler(c *gin.Context) {
-	if err := h.Repo.URLStorager.Ping(); err != nil {
+	if err := h.Service.Ping(c.Request.Context()); err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 
 	}

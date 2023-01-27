@@ -33,7 +33,7 @@ func (h *Handler) PostJSONHandler(c *gin.Context) {
 		return
 	}
 
-	shortURL, err := h.Repo.URLStorager.SaveURL(input.URL, userID)
+	shortURL, err := h.Service.SaveURL(input.URL, userID, c.Request.Context())
 
 	if err != nil {
 		_, ok := err.(utilits.URLConflict)
@@ -72,7 +72,7 @@ func (h *Handler) MultipleShortHandler(c *gin.Context) {
 		return
 	}
 
-	responseBatch, err := h.Repo.URLStorager.MultipleShort(input, userID)
+	responseBatch, err := h.Service.MultipleShort(input, userID, c.Request.Context())
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 		return
@@ -82,16 +82,16 @@ func (h *Handler) MultipleShortHandler(c *gin.Context) {
 
 }
 
-func (h *Handler) GetUSERURLS(c *gin.Context) {
+func (h *Handler) GetUserURLs(c *gin.Context) {
 	userID, err := getUserID(c)
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
-	urls := h.Repo.GetAllURLS(userID)
+	urls := h.Service.GetAllURLs(userID, c.Request.Context())
 	for i, v := range urls {
-		urls[i].ResultURL = h.Repo.Config.BaseURL + "/" + v.ID
+		urls[i].ResultURL = h.Service.Cfg.BaseURL + "/" + v.ID
 	}
 	if len(urls) == 0 {
 		c.Status(http.StatusNoContent)
@@ -109,6 +109,6 @@ func (h *Handler) DeleteUrls(c *gin.Context) {
 		return
 	}
 	logrus.Printf("input array %v", inputArray)
-	h.Repo.Queue.Write(inputArray)
+	h.Service.Queue.Write(inputArray)
 	c.Status(http.StatusAccepted)
 }

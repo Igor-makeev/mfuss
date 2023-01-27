@@ -4,8 +4,10 @@ import (
 	"io"
 	"mfuss/configs"
 	"mfuss/internal/entity"
-	mock "mfuss/internal/mock"
+	"mfuss/internal/mock"
 	"mfuss/internal/repositories"
+	"mfuss/internal/service"
+
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -19,12 +21,13 @@ import (
 
 func TestHandler_PostJSONHandler(t *testing.T) {
 	cfg := configs.Config{SrvAddr: "localhost:8080", BaseURL: "http://localhost:8080"}
-	store := mock.NewStorageMock(&cfg)
 
+	storage := mock.NewStorageMock(&cfg)
 	rep := &repositories.Repository{
-		URLStorager: store,
+		URLStorager: storage,
 		Config:      &cfg,
 	}
+	service := service.NewService(rep)
 	exampleReq := entity.URLInput{URL: "https://kanobu.ru/"}
 	body, _ := json.Marshal(exampleReq)
 	req, err := http.NewRequest(http.MethodPost, "http://localhost:8080/api/shorten", strings.NewReader(string(body)))
@@ -35,7 +38,7 @@ func TestHandler_PostJSONHandler(t *testing.T) {
 	c, _ := gin.CreateTestContext(rr)
 	c.Request = req
 	c.Set("userID", "test")
-	h := NewHandler(rep)
+	h := NewHandler(service)
 	h.PostJSONHandler(c)
 
 	result := rr.Result()

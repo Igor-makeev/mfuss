@@ -7,7 +7,7 @@ type ShortURL struct {
 	ResultURL string `json:"short_url"`
 	Origin    string `json:"original_url"`
 	UserID    string `json:"-"`
-	IsDelited bool   `json:"-"`
+	IsDeleted bool   `json:"-"`
 }
 
 type URLInput struct {
@@ -29,6 +29,6 @@ type URLBatchResponse struct {
 }
 
 func (s *ShortURL) SetDeleteFlag() {
-	s.IsDelited = true
+	s.IsDeleted = true
 	logrus.Printf("in entity package %v", s)
 }

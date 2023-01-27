@@ -8,8 +8,6 @@ import (
 	"mfuss/internal/entity"
 	"mfuss/internal/utilits"
 	"sync"
-
-	"github.com/sirupsen/logrus"
 )
 
 type Dumper interface {
@@ -120,7 +118,7 @@ func (ms *MemoryStorage) MarkAsDeleted(arr []string, ctx context.Context) error 
 
 	for _, val := range arr {
 		ms.setDeletFlag(val)
-		logrus.Printf("in markasdeleted %v", ms.URLStore[val])
+
 	}
 
 	return nil
@@ -133,7 +131,7 @@ func (ms *MemoryStorage) setDeletFlag(ID string) {
 			v.SetDeleteFlag()
 
 		}
-		logrus.Printf("in setdeleteflag %v", v)
+
 	}
 
 }

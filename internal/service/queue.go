@@ -20,7 +20,7 @@ func NewQueue() *Queue {
 	q := &Queue{
 		stream:         make(chan string, 50),
 		Buf:            make([]string, 0, bufCap),
-		UpdateInterval: 3 * time.Second,
+		UpdateInterval: 2 * time.Second,
 	}
 
 	return q

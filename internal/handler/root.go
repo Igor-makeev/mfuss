@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 func (h *Handler) PostHandler(c *gin.Context) {
@@ -72,7 +71,7 @@ func (h *Handler) GetURLHandler(c *gin.Context) {
 		http.Error(c.Writer, err.Error(), http.StatusBadGateway)
 		return
 	}
-	logrus.Printf("in handler: bool flag %v", sURL.IsDeleted)
+
 	if sURL.IsDeleted {
 		c.Status(http.StatusGone)
 	} else {

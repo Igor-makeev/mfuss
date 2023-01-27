@@ -141,8 +141,7 @@ func (ps *PostgresStorage) Ping(ctx context.Context) error {
 }
 
 func (ps *PostgresStorage) MarkAsDeleted(arr []string, ctx context.Context) error {
-	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
-	defer cancel()
+
 	_, err := ps.DB.Exec(ctx, "UPDATE url_store SET Is_deleted = true WHERE ID = ANY ($1) and is_deleted <> true", arr)
 	if err != nil {
 		return err

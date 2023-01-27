@@ -51,11 +51,11 @@ func (q *Queue) Close() {
 	close(q.stream)
 }
 
-func (q *Queue) commitData(ctx context.Context, commitDataFunc func([]string, context.Context) error) {
-	commitDataFunc(q.Buf, ctx)
-	q.cleanBuf()
+// func (q *Queue) commitData(ctx context.Context, commitDataFunc func([]string, context.Context) error) {
+// 	commitDataFunc(q.Buf, ctx)
+// 	q.cleanBuf()
 
-}
+// }
 
 func (q *Queue) listen(ctx context.Context, commitDataFunc func([]string, context.Context) error, interval time.Duration) {
 	ticker := time.NewTicker(interval)
@@ -65,16 +65,19 @@ func (q *Queue) listen(ctx context.Context, commitDataFunc func([]string, contex
 		select {
 		case id := <-q.stream:
 			if len(q.Buf) == bufCap {
-				q.commitData(ctx, commitDataFunc)
+				commitDataFunc(q.Buf, ctx)
+				q.cleanBuf()
 			}
 
 			q.Buf = append(q.Buf, id)
 			continue
 		case <-ticker.C:
-			q.commitData(ctx, commitDataFunc)
+			commitDataFunc(q.Buf, ctx)
+			q.cleanBuf()
 			continue
 		case <-ctx.Done():
-			q.commitData(ctx, commitDataFunc)
+			commitDataFunc(q.Buf, ctx)
+			q.cleanBuf()
 			return
 		}
 	}

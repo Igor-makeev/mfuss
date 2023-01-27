@@ -12,7 +12,7 @@ type URLStorager interface {
 	GetAllURLs(userID string, ctx context.Context) []entity.ShortURL
 	GetShortURL(id, userID string, ctx context.Context) (sURL entity.ShortURL, er error)
 	MultipleShort(input []entity.URLBatchInput, userID string, ctx context.Context) ([]entity.URLBatchResponse, error)
-	MarkAsDeleted(arr []string, ctx context.Context) error
+	MarkAsDeleted(arr []string) error
 	Ping(ctx context.Context) error
 	Close(ctx context.Context) error
 }

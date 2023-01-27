@@ -53,7 +53,7 @@ func (store *StorageMock) MultipleShort(input []entity.URLBatchInput, userID str
 	return nil, nil
 }
 
-func (store *StorageMock) MarkAsDeleted(arr []string, ctx context.Context) error {
+func (store *StorageMock) MarkAsDeleted(arr []string) error {
 	return nil
 }
 func (store *StorageMock) Ping(ctx context.Context) error {

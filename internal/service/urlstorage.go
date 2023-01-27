@@ -27,8 +27,8 @@ func (uss *URLStorageService) GetShortURL(id, userID string, ctx context.Context
 func (uss *URLStorageService) MultipleShort(input []entity.URLBatchInput, userID string, ctx context.Context) ([]entity.URLBatchResponse, error) {
 	return uss.repo.MultipleShort(input, userID, ctx)
 }
-func (uss *URLStorageService) MarkAsDeleted(arr []string, ctx context.Context) error {
-	return uss.repo.MarkAsDeleted(arr, ctx)
+func (uss *URLStorageService) MarkAsDeleted(arr []string) error {
+	return uss.repo.MarkAsDeleted(arr)
 }
 func (uss *URLStorageService) Ping(ctx context.Context) error {
 	return uss.repo.Ping(ctx)

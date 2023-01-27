@@ -114,7 +114,7 @@ func (ms *MemoryStorage) Ping(ctx context.Context) error {
 
 }
 
-func (ms *MemoryStorage) MarkAsDeleted(arr []string, ctx context.Context) error {
+func (ms *MemoryStorage) MarkAsDeleted(arr []string) error {
 
 	for _, val := range arr {
 		ms.setDeletFlag(val)

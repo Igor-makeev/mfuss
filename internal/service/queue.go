@@ -13,7 +13,7 @@ type Queue struct {
 
 	Buf            []string
 	UpdateInterval time.Duration
-	mutex          *sync.Mutex
+	mutex          sync.Mutex
 }
 
 func NewQueue() *Queue {

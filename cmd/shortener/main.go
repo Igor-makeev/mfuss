@@ -17,23 +17,8 @@ import (
 func main() {
 
 	cfg := configs.NewConfig()
-	var urlstorage repositories.URLStorager
-	var err error
 
-	if cfg.DBDSN == "" {
-		urlstorage, err = PrepareMemoryStorage(cfg)
-		if err != nil {
-			logrus.Fatal(err)
-		}
-	} else {
-		conn, err := repositories.NewPostgresClient(cfg)
-		if err != nil {
-			logrus.Fatal(err)
-		}
-		urlstorage = repositories.NewPostgresStorage(cfg, conn)
-	}
-
-	rep, err := repositories.NewRepository(cfg, urlstorage)
+	rep, err := repositories.NewRepository(cfg)
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -70,21 +55,5 @@ func main() {
 	if err := srv.Shutdown(context.Background()); err != nil {
 		logrus.Errorf("error occured on server shuting down: %s", err.Error())
 	}
-
-}
-
-func PrepareMemoryStorage(cfg *configs.Config) (*repositories.MemoryStorage, error) {
-
-	dump, err := repositories.NewDump(cfg.FileStoragePath)
-	if err != nil {
-		return nil, err
-	}
-
-	ms := repositories.NewMemoryStorage(cfg, dump)
-	if err := ms.LoadFromDump(); err != nil {
-		return nil, err
-	}
-
-	return ms, nil
 
 }

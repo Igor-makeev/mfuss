@@ -6,6 +6,7 @@ import (
 	"mfuss/internal/handler"
 	"mfuss/internal/repositories"
 	"mfuss/internal/server"
+	"mfuss/internal/service"
 	"os"
 	"os/signal"
 	"syscall"
@@ -21,14 +22,19 @@ func main() {
 	if err != nil {
 		logrus.Fatal(err)
 	}
+	service := service.NewService(rep)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	service.Queue.Run(ctx)
 
-	handler := handler.NewHandler(rep)
+	handler := handler.NewHandler(service)
 
 	srv := server.NewURLServer(handler)
 
 	go func() {
 
 		if err := srv.ListenAndServe(); err != nil {
+
 			logrus.Fatalf("failed to listen and serve: %+v", err.Error())
 		}
 	}()
@@ -43,8 +49,8 @@ func main() {
 
 	logrus.Print("shortener shuting down.")
 
-	if rep.Close(); err != nil {
-		logrus.Errorf("error occured on closing storage: %s", err.Error())
+	if service.Close(ctx); err != nil {
+		logrus.Errorf("error occured on closing service: %s", err.Error())
 	}
 	if err := srv.Shutdown(context.Background()); err != nil {
 		logrus.Errorf("error occured on server shuting down: %s", err.Error())

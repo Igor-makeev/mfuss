@@ -7,7 +7,7 @@ import (
 
 func NewURLServer(h *handler.Handler) *http.Server {
 	return &http.Server{
-		Addr:    h.Repo.Config.SrvAddr,
+		Addr:    h.Service.Cfg.SrvAddr,
 		Handler: h.Router,
 	}
 

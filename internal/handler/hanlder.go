@@ -2,20 +2,20 @@ package handler
 
 import (
 	"compress/gzip"
-	"mfuss/internal/repositories"
+	"mfuss/internal/service"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Handler struct {
-	Repo   *repositories.Repository
-	Router *gin.Engine
+	Service *service.Service
+	Router  *gin.Engine
 }
 
-func NewHandler(rep *repositories.Repository) *Handler {
+func NewHandler(service *service.Service) *Handler {
 	handler := &Handler{
-		Router: gin.New(),
-		Repo:   rep,
+		Router:  gin.New(),
+		Service: service,
 	}
 	handler.Router.Use(UserCheck())
 	root := handler.Router.Group("/")
@@ -29,7 +29,8 @@ func NewHandler(rep *repositories.Repository) *Handler {
 		{
 			api.POST("/shorten/batch", handler.MultipleShortHandler)
 			api.POST("/shorten", GzipUnpack(), handler.PostJSONHandler)
-			api.GET("/user/urls", handler.GetUSERURLS)
+			api.GET("/user/urls", handler.GetUserURLs)
+			api.DELETE("/user/urls", URLSIDCheck(), handler.DeleteUrls)
 		}
 	}
 

@@ -13,8 +13,8 @@ func GenetareID() string {
 	for i := range buf {
 		buf[i] = letterBytes[rand.Intn(len(letterBytes))]
 	}
-	res := string(buf)
-	return res
+
+	return string(buf)
 }
 
 type URLConflict struct {

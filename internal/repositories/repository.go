@@ -3,61 +3,72 @@ package repositories
 import (
 	"context"
 	"mfuss/configs"
+
 	"mfuss/internal/entity"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/sirupsen/logrus"
 )
 
 type URLStorager interface {
-	SaveURL(input, userID string) (string, error)
-	GetAllURLS(userID string) []entity.ShortURL
-	GetShortURL(id, userID string) (sURL entity.ShortURL, er error)
-	MultipleShort(input []entity.URLBatchInput, userID string) ([]entity.URLBatchResponse, error)
-	Close() error
+	SaveURL(ctx context.Context, input, userID string) (string, error)
+	GetAllURLs(ctx context.Context, userID string) []entity.ShortURL
+	GetShortURL(ctx context.Context, id, userID string) (sURL entity.ShortURL, er error)
+	MultipleShort(ctx context.Context, input []entity.URLBatchInput, userID string) ([]entity.URLBatchResponse, error)
+	MarkAsDeleted(ctx context.Context, arr []string) error
+	Ping(ctx context.Context) error
+	Close(ctx context.Context) error
 }
 
 type Repository struct {
 	URLStorager
-	Config configs.Config
-	DB     *pgx.Conn
+	Config *configs.Config
 }
 
 func NewRepository(cfg *configs.Config) (*Repository, error) {
 
+	var urlstorage URLStorager
+	var err error
+
 	if cfg.DBDSN == "" {
-		ms, err := NewMemoryStorage(cfg)
+		urlstorage, err = PrepareMemoryStorage(cfg)
 		if err != nil {
-			return nil, err
+			logrus.Fatal(err)
 		}
-		return &Repository{
-			URLStorager: ms,
-			Config:      *cfg,
-			DB:          nil,
-		}, nil
+	} else {
+		conn, err := NewPostgresClient(cfg)
+		if err != nil {
+			logrus.Fatal(err)
+		}
+		urlstorage = NewPostgresStorage(cfg, conn)
 	}
 
-	ps, err := NewPostgresStorage(cfg)
-	if err != nil {
-		return nil, err
-	}
 	return &Repository{
-		URLStorager: ps,
-		Config:      *cfg,
-		DB:          ps.DB,
+		URLStorager: urlstorage,
+		Config:      cfg,
 	}, nil
 
 }
 
-func (rep *Repository) Close() error {
+func PrepareMemoryStorage(cfg *configs.Config) (*MemoryStorage, error) {
 
-	if err := rep.URLStorager.Close(); err != nil {
-		return err
+	dump, err := NewDump(cfg.FileStoragePath)
+	if err != nil {
+		return nil, err
 	}
 
-	if rep.DB != nil {
-		if err := rep.DB.Close(context.Background()); err != nil {
-			return err
-		}
+	ms := NewMemoryStorage(cfg, dump)
+	if err := ms.LoadFromDump(); err != nil {
+		return nil, err
+	}
+
+	return ms, nil
+
+}
+
+func (rep *Repository) Close(ctx context.Context) error {
+
+	if err := rep.URLStorager.Close(ctx); err != nil {
+		return err
 	}
 
 	return nil

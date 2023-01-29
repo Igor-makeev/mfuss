@@ -2,23 +2,29 @@ package service
 
 import (
 	"context"
+	"mfuss/internal/repositories"
 	"sync"
 	"time"
 )
 
 var bufCap = 200
 
-type Queue struct {
-	stream chan string
+type Commiter interface {
+	MarkAsDeleted(ctx context.Context, arr []string) error
+}
 
+type Queue struct {
+	stream         chan string
+	store          Commiter
 	Buf            []string
 	UpdateInterval time.Duration
 	mutex          sync.Mutex
 }
 
-func NewQueue() *Queue {
+func NewQueue(rep *repositories.Repository) *Queue {
 	q := &Queue{
 		stream:         make(chan string, 50),
+		store:          rep.URLStorager,
 		Buf:            make([]string, 0, bufCap),
 		UpdateInterval: 1 * time.Second,
 	}
@@ -26,8 +32,8 @@ func NewQueue() *Queue {
 	return q
 }
 
-func (q *Queue) Run(ctx context.Context, commitData func(context.Context, []string) error) {
-	go q.listen(ctx, commitData, q.UpdateInterval)
+func (q *Queue) Run(ctx context.Context) {
+	go q.listen(ctx, q.UpdateInterval)
 }
 
 func (q *Queue) Write(data []string) {
@@ -51,13 +57,13 @@ func (q *Queue) Close() {
 	close(q.stream)
 }
 
-func (q *Queue) commitData(ctx context.Context, commitDataFunc func(context.Context, []string) error) {
-	commitDataFunc(ctx, q.Buf)
+func (q *Queue) commitData(ctx context.Context, arr []string) {
+	q.store.MarkAsDeleted(ctx, arr)
 	q.cleanBuf()
 
 }
 
-func (q *Queue) listen(ctx context.Context, commitDataFunc func(context.Context, []string) error, interval time.Duration) {
+func (q *Queue) listen(ctx context.Context, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 
 	for {
@@ -65,18 +71,18 @@ func (q *Queue) listen(ctx context.Context, commitDataFunc func(context.Context,
 		select {
 		case id := <-q.stream:
 			if len(q.Buf) == bufCap {
-				q.commitData(ctx, commitDataFunc)
+				q.commitData(ctx, q.Buf)
 			}
 
 			q.Buf = append(q.Buf, id)
 			continue
 		case <-ticker.C:
 
-			q.commitData(ctx, commitDataFunc)
+			q.commitData(ctx, q.Buf)
 			continue
 		case <-ctx.Done():
 
-			q.commitData(ctx, commitDataFunc)
+			q.commitData(ctx, q.Buf)
 			return
 		}
 	}

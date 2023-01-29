@@ -16,8 +16,8 @@ type Commiter interface {
 type Queue struct {
 	stream         chan string
 	store          Commiter
-	Buf            []string
-	UpdateInterval time.Duration
+	buf            []string
+	updateInterval time.Duration
 	mutex          sync.Mutex
 }
 
@@ -25,15 +25,15 @@ func NewQueue(rep *repositories.Repository) *Queue {
 	q := &Queue{
 		stream:         make(chan string, 50),
 		store:          rep.URLStorager,
-		Buf:            make([]string, 0, bufCap),
-		UpdateInterval: 1 * time.Second,
+		buf:            make([]string, 0, bufCap),
+		updateInterval: 1 * time.Second,
 	}
 
 	return q
 }
 
 func (q *Queue) Run(ctx context.Context) {
-	go q.listen(ctx, q.UpdateInterval)
+	go q.listen(ctx, q.updateInterval)
 }
 
 func (q *Queue) Write(data []string) {
@@ -50,7 +50,7 @@ func (q *Queue) Write(data []string) {
 func (q *Queue) cleanBuf() {
 	q.mutex.Lock()
 	defer q.mutex.Unlock()
-	q.Buf = q.Buf[:0]
+	q.buf = q.buf[:0]
 
 }
 func (q *Queue) Close() {
@@ -70,19 +70,19 @@ func (q *Queue) listen(ctx context.Context, interval time.Duration) {
 
 		select {
 		case id := <-q.stream:
-			if len(q.Buf) == bufCap {
-				q.commitData(ctx, q.Buf)
+			if len(q.buf) == bufCap {
+				q.commitData(ctx, q.buf)
 			}
 
-			q.Buf = append(q.Buf, id)
+			q.buf = append(q.buf, id)
 			continue
 		case <-ticker.C:
 
-			q.commitData(ctx, q.Buf)
+			q.commitData(ctx, q.buf)
 			continue
 		case <-ctx.Done():
 
-			q.commitData(ctx, q.Buf)
+			q.commitData(ctx, q.buf)
 			return
 		}
 	}

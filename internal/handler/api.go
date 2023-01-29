@@ -32,7 +32,7 @@ func (h *Handler) PostJSONHandler(c *gin.Context) {
 		return
 	}
 
-	shortURL, err := h.Service.SaveURL(input.URL, userID, c.Request.Context())
+	shortURL, err := h.Service.SaveURL(c.Request.Context(), input.URL, userID)
 
 	if err != nil {
 		_, ok := err.(utilits.URLConflict)
@@ -71,7 +71,7 @@ func (h *Handler) MultipleShortHandler(c *gin.Context) {
 		return
 	}
 
-	responseBatch, err := h.Service.MultipleShort(input, userID, c.Request.Context())
+	responseBatch, err := h.Service.MultipleShort(c.Request.Context(), input, userID)
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 		return
@@ -88,7 +88,7 @@ func (h *Handler) GetUserURLs(c *gin.Context) {
 		return
 	}
 
-	urls := h.Service.GetAllURLs(userID, c.Request.Context())
+	urls := h.Service.GetAllURLs(c.Request.Context(), userID)
 	for i, v := range urls {
 		urls[i].ResultURL = h.Service.Cfg.BaseURL + "/" + v.ID
 	}

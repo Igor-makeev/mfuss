@@ -17,7 +17,7 @@ func NewStorageMock(cfg *configs.Config) *StorageMock {
 	return &StorageMock{store: make(map[string]*entity.ShortURL), ID: "0", cfg: *cfg}
 }
 
-func (store *StorageMock) SaveURL(input, userid string, ctx context.Context) (string, error) {
+func (store *StorageMock) SaveURL(ctx context.Context, input, userid string) (string, error) {
 
 	url := entity.ShortURL{
 		ID:     store.ID,
@@ -27,7 +27,7 @@ func (store *StorageMock) SaveURL(input, userid string, ctx context.Context) (st
 	url.ResultURL = store.cfg.BaseURL + "/" + url.ID
 	return url.ResultURL, nil
 }
-func (store *StorageMock) GetAllURLs(userID string, ctx context.Context) []entity.ShortURL {
+func (store *StorageMock) GetAllURLs(ctx context.Context, userID string) []entity.ShortURL {
 
 	var urls []entity.ShortURL
 	for _, v := range store.store {
@@ -38,7 +38,7 @@ func (store *StorageMock) GetAllURLs(userID string, ctx context.Context) []entit
 	return urls
 }
 
-func (store *StorageMock) GetShortURL(id, idstring string, ctx context.Context) (sURL entity.ShortURL, er error) {
+func (store *StorageMock) GetShortURL(ctx context.Context, id, idstring string) (sURL entity.ShortURL, er error) {
 	s, ok := store.store[id]
 	if ok {
 		return *s, nil
@@ -49,11 +49,11 @@ func (store *StorageMock) GetShortURL(id, idstring string, ctx context.Context) 
 func (store *StorageMock) Close(ctx context.Context) error {
 	return nil
 }
-func (store *StorageMock) MultipleShort(input []entity.URLBatchInput, userID string, ctx context.Context) ([]entity.URLBatchResponse, error) {
+func (store *StorageMock) MultipleShort(ctx context.Context, input []entity.URLBatchInput, userID string) ([]entity.URLBatchResponse, error) {
 	return nil, nil
 }
 
-func (store *StorageMock) MarkAsDeleted(arr []string) error {
+func (store *StorageMock) MarkAsDeleted(ctx context.Context, arr []string) error {
 	return nil
 }
 func (store *StorageMock) Ping(ctx context.Context) error {

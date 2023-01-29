@@ -42,7 +42,7 @@ func NewPostgresClient(cfg *configs.Config) (*pgx.Conn, error) {
 	return conn, err
 }
 
-func (ps *PostgresStorage) GetAllURLs(userID string, ctx context.Context) []entity.ShortURL {
+func (ps *PostgresStorage) GetAllURLs(ctx context.Context, userID string) []entity.ShortURL {
 	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
 	urls := make([]entity.ShortURL, 0)
@@ -68,7 +68,7 @@ func (ps *PostgresStorage) GetAllURLs(userID string, ctx context.Context) []enti
 	return urls
 }
 
-func (ps *PostgresStorage) GetShortURL(id, userID string, ctx context.Context) (sURL entity.ShortURL, er error) {
+func (ps *PostgresStorage) GetShortURL(ctx context.Context, id, userID string) (sURL entity.ShortURL, er error) {
 	ps.Lock()
 	defer ps.Unlock()
 	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
@@ -81,7 +81,7 @@ func (ps *PostgresStorage) GetShortURL(id, userID string, ctx context.Context) (
 	return url, nil
 }
 
-func (ps *PostgresStorage) SaveURL(input, userID string, ctx context.Context) (string, error) {
+func (ps *PostgresStorage) SaveURL(ctx context.Context, input, userID string) (string, error) {
 	ps.Lock()
 	defer ps.Unlock()
 	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
@@ -114,12 +114,12 @@ func (ps *PostgresStorage) Close(ctx context.Context) error {
 	return nil
 }
 
-func (ps *PostgresStorage) MultipleShort(input []entity.URLBatchInput, userID string, ctx context.Context) ([]entity.URLBatchResponse, error) {
+func (ps *PostgresStorage) MultipleShort(ctx context.Context, input []entity.URLBatchInput, userID string) ([]entity.URLBatchResponse, error) {
 	var resOutput entity.URLBatchResponse
 	var responseBatch []entity.URLBatchResponse
 
 	for _, v := range input {
-		res, err := ps.SaveURL(v.URL, userID, ctx)
+		res, err := ps.SaveURL(ctx, v.URL, userID)
 		if err != nil {
 			return nil, err
 		}
@@ -142,9 +142,10 @@ func (ps *PostgresStorage) Ping(ctx context.Context) error {
 
 }
 
-func (ps *PostgresStorage) MarkAsDeleted(arr []string) error {
-
-	_, err := ps.DB.Exec(context.Background(), "UPDATE url_store SET Is_deleted = true WHERE ID = ANY ($1) and is_deleted <> true", arr)
+func (ps *PostgresStorage) MarkAsDeleted(ctx context.Context, arr []string) error {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
+	defer cancel()
+	_, err := ps.DB.Exec(ctx, "UPDATE url_store SET Is_deleted = true WHERE ID = ANY ($1) and is_deleted <> true", arr)
 	if err != nil {
 		return err
 	}

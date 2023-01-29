@@ -14,21 +14,21 @@ func NewURLStorageService(repo repositories.URLStorager) *URLStorageService {
 	return &URLStorageService{repo: repo}
 }
 
-func (uss *URLStorageService) SaveURL(input, userID string, ctx context.Context) (string, error) {
+func (uss *URLStorageService) SaveURL(ctx context.Context, input, userID string) (string, error) {
 
-	return uss.repo.SaveURL(input, userID, ctx)
+	return uss.repo.SaveURL(ctx, input, userID)
 }
-func (uss *URLStorageService) GetAllURLs(userID string, ctx context.Context) []entity.ShortURL {
-	return uss.repo.GetAllURLs(userID, ctx)
+func (uss *URLStorageService) GetAllURLs(ctx context.Context, userID string) []entity.ShortURL {
+	return uss.repo.GetAllURLs(ctx, userID)
 }
-func (uss *URLStorageService) GetShortURL(id, userID string, ctx context.Context) (sURL entity.ShortURL, er error) {
-	return uss.repo.GetShortURL(id, userID, ctx)
+func (uss *URLStorageService) GetShortURL(ctx context.Context, id, userID string) (sURL entity.ShortURL, er error) {
+	return uss.repo.GetShortURL(ctx, id, userID)
 }
-func (uss *URLStorageService) MultipleShort(input []entity.URLBatchInput, userID string, ctx context.Context) ([]entity.URLBatchResponse, error) {
-	return uss.repo.MultipleShort(input, userID, ctx)
+func (uss *URLStorageService) MultipleShort(ctx context.Context, input []entity.URLBatchInput, userID string) ([]entity.URLBatchResponse, error) {
+	return uss.repo.MultipleShort(ctx, input, userID)
 }
-func (uss *URLStorageService) MarkAsDeleted(arr []string) error {
-	return uss.repo.MarkAsDeleted(arr)
+func (uss *URLStorageService) MarkAsDeleted(ctx context.Context, arr []string) error {
+	return uss.repo.MarkAsDeleted(ctx, arr)
 }
 func (uss *URLStorageService) Ping(ctx context.Context) error {
 	return uss.repo.Ping(ctx)

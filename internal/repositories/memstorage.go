@@ -37,7 +37,7 @@ func (ms *MemoryStorage) LoadFromDump() error {
 	return ms.Dumper.LoadData(ms.URLStore)
 }
 
-func (ms *MemoryStorage) GetAllURLs(userID string, ctx context.Context) []entity.ShortURL {
+func (ms *MemoryStorage) GetAllURLs(ctx context.Context, userID string) []entity.ShortURL {
 
 	var urls []entity.ShortURL
 	for _, v := range ms.URLStore {
@@ -48,7 +48,7 @@ func (ms *MemoryStorage) GetAllURLs(userID string, ctx context.Context) []entity
 	return urls
 }
 
-func (ms *MemoryStorage) GetShortURL(id, userID string, ctx context.Context) (sURL entity.ShortURL, er error) {
+func (ms *MemoryStorage) GetShortURL(ctx context.Context, id, userID string) (sURL entity.ShortURL, er error) {
 
 	s, ok := ms.URLStore[id]
 	if ok {
@@ -59,7 +59,7 @@ func (ms *MemoryStorage) GetShortURL(id, userID string, ctx context.Context) (sU
 
 }
 
-func (ms *MemoryStorage) SaveURL(input, userID string, ctx context.Context) (string, error) {
+func (ms *MemoryStorage) SaveURL(ctx context.Context, input, userID string) (string, error) {
 	ms.Lock()
 	defer ms.Unlock()
 	for _, value := range ms.URLStore {
@@ -89,12 +89,12 @@ func (ms *MemoryStorage) Close(ctx context.Context) error {
 	return ms.Dumper.Close()
 }
 
-func (ms *MemoryStorage) MultipleShort(input []entity.URLBatchInput, userID string, ctx context.Context) ([]entity.URLBatchResponse, error) {
+func (ms *MemoryStorage) MultipleShort(ctx context.Context, input []entity.URLBatchInput, userID string) ([]entity.URLBatchResponse, error) {
 	var resOutput entity.URLBatchResponse
 	var responseBatch []entity.URLBatchResponse
 
 	for _, v := range input {
-		res, err := ms.SaveURL(v.URL, userID, ctx)
+		res, err := ms.SaveURL(ctx, v.URL, userID)
 		if err != nil {
 			return nil, err
 		}
@@ -114,7 +114,7 @@ func (ms *MemoryStorage) Ping(ctx context.Context) error {
 
 }
 
-func (ms *MemoryStorage) MarkAsDeleted(arr []string) error {
+func (ms *MemoryStorage) MarkAsDeleted(ctx context.Context, arr []string) error {
 
 	for _, val := range arr {
 		ms.setDeletFlag(val)

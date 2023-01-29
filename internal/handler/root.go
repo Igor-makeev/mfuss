@@ -31,7 +31,7 @@ func (h *Handler) PostHandler(c *gin.Context) {
 		return
 	}
 
-	shortURL, err := h.Service.SaveURL(string(body), userID, c.Request.Context())
+	shortURL, err := h.Service.SaveURL(c.Request.Context(), string(body), userID)
 
 	if err != nil {
 		_, ok := err.(utilits.URLConflict)
@@ -66,7 +66,7 @@ func (h *Handler) GetURLHandler(c *gin.Context) {
 
 	id := c.Param("id")
 
-	sURL, err := h.Service.GetShortURL(id, userID, c.Request.Context())
+	sURL, err := h.Service.GetShortURL(c.Request.Context(), id, userID)
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusBadGateway)
 		return

@@ -64,7 +64,7 @@ func TestHandler_GetURLHandler(t *testing.T) {
 	c.Set("userID", "test")
 	h := NewHandler(service)
 
-	h.Service.SaveURL("https://kanobu.ru/", "", context.Background())
+	h.Service.SaveURL(context.Background(), "https://kanobu.ru/", "")
 	req, err := http.NewRequest(http.MethodGet, "http://localhost:8080/0", nil)
 	if err != nil {
 		t.Fatal(err)

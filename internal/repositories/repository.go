@@ -5,6 +5,8 @@ import (
 	"mfuss/configs"
 
 	"mfuss/internal/entity"
+
+	"github.com/sirupsen/logrus"
 )
 
 type URLStorager interface {
@@ -22,12 +24,44 @@ type Repository struct {
 	Config *configs.Config
 }
 
-func NewRepository(cfg *configs.Config, urlstorager URLStorager) (*Repository, error) {
+func NewRepository(cfg *configs.Config) (*Repository, error) {
+
+	var urlstorage URLStorager
+	var err error
+
+	if cfg.DBDSN == "" {
+		urlstorage, err = PrepareMemoryStorage(cfg)
+		if err != nil {
+			logrus.Fatal(err)
+		}
+	} else {
+		conn, err := NewPostgresClient(cfg)
+		if err != nil {
+			logrus.Fatal(err)
+		}
+		urlstorage = NewPostgresStorage(cfg, conn)
+	}
 
 	return &Repository{
-		URLStorager: urlstorager,
+		URLStorager: urlstorage,
 		Config:      cfg,
 	}, nil
+
+}
+
+func PrepareMemoryStorage(cfg *configs.Config) (*MemoryStorage, error) {
+
+	dump, err := NewDump(cfg.FileStoragePath)
+	if err != nil {
+		return nil, err
+	}
+
+	ms := NewMemoryStorage(cfg, dump)
+	if err := ms.LoadFromDump(); err != nil {
+		return nil, err
+	}
+
+	return ms, nil
 
 }
 

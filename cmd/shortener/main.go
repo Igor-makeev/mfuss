@@ -25,7 +25,7 @@ func main() {
 	service := service.NewService(rep)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	service.Queue.Run(ctx, service.MarkAsDeleted)
+	service.Queue.Run(ctx)
 
 	handler := handler.NewHandler(service)
 

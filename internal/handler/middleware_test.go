@@ -77,9 +77,10 @@ func TestHandler_checkURLSID(t *testing.T) {
 			tt.args.c.Request = req
 
 			h.checkURLSID(tt.args.c)
+			res := rr.Result()
+			defer res.Body.Close()
+			got := res.StatusCode
 
-			got := rr.Result().StatusCode
-			defer rr.Result().Body.Close()
 			if got != tt.want.statusCode {
 				t.Errorf("checkURLSID() status = %v, want %v", got, tt.want.statusCode)
 			}

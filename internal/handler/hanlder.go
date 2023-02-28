@@ -25,7 +25,7 @@ func NewHandler(service *service.Service) *Handler {
 		root.GET("/:id", GzipCompress(gzip.DefaultCompression), handler.GetURLHandler)
 		root.GET("/ping", handler.GetPingHandler)
 
-		api := handler.Router.Group("api")
+		api := handler.Router.Group("api", handler.userCheck)
 		{
 			api.POST("/shorten/batch", handler.MultipleShortHandler)
 			api.POST("/shorten", GzipUnpack(), handler.PostJSONHandler)

@@ -194,7 +194,7 @@ func Test_checkCook(t *testing.T) {
 			want: true,
 		},
 		{
-			name: "correct cook",
+			name: "wrong cook",
 			args: args{wrongCook},
 			want: false,
 		},

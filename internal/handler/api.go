@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 func (h *Handler) PostJSONHandler(c *gin.Context) {
@@ -31,7 +32,7 @@ func (h *Handler) PostJSONHandler(c *gin.Context) {
 		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
 		return
 	}
-
+	logrus.Printf("in postgson handler :%v", input.URL)
 	shortURL, err := h.Service.SaveURL(c.Request.Context(), input.URL, userID)
 
 	if err != nil {

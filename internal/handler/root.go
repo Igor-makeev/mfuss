@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 func (h *Handler) PostHandler(c *gin.Context) {
@@ -44,7 +45,7 @@ func (h *Handler) PostHandler(c *gin.Context) {
 		if err := utilits.CheckURL(shortURL); err != nil {
 			http.Error(c.Writer, fmt.Sprintf("output data: %v is invalid URL", shortURL), http.StatusInternalServerError)
 		}
-
+		logrus.Printf("in postgson handler :%v", string(body))
 		c.Status(http.StatusConflict)
 		c.Writer.Write([]byte(shortURL))
 	} else {

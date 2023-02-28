@@ -116,6 +116,7 @@ func (ps *PostgresStorage) MultipleShort(ctx context.Context, input []entity.URL
 	var responseBatch []entity.URLBatchResponse
 
 	for _, v := range input {
+		logrus.Print(v.URL)
 		res, err := ps.SaveURL(ctx, v.URL, userID)
 		if err != nil {
 			return nil, err

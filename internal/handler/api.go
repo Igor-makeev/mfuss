@@ -65,13 +65,13 @@ func (h *Handler) MultipleShortHandler(c *gin.Context) {
 		return
 	}
 	var input []entity.URLBatchInput
-	logrus.Print(input)
+
 	err = json.NewDecoder(c.Request.Body).Decode(&input)
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
 		return
 	}
-
+	logrus.Print(input)
 	responseBatch, err := h.Service.MultipleShort(c.Request.Context(), input, userID)
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)

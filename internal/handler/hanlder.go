@@ -30,7 +30,7 @@ func NewHandler(service *service.Service) *Handler {
 			api.POST("/shorten/batch", handler.MultipleShortHandler)
 			api.POST("/shorten", GzipUnpack(), handler.PostJSONHandler)
 			api.GET("/user/urls", handler.GetUserURLs)
-			api.DELETE("/user/urls", handler.DeleteUrls).Use(URLSIDCheck)
+			api.Use(URLSIDCheck).DELETE("/user/urls", handler.DeleteUrls)
 		}
 	}
 

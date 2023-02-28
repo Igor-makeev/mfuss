@@ -103,9 +103,6 @@ func (ps *PostgresStorage) SaveURL(ctx context.Context, input, userID string) (s
 }
 
 func (ps *PostgresStorage) Close(ctx context.Context) error {
-	if _, err := ps.DB.Exec(ctx, "Drop table url_store;"); err != nil {
-		return err
-	}
 
 	if err := ps.DB.Close(ctx); err != nil {
 		return err

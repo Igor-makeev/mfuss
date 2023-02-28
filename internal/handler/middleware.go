@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	mrand "math/rand"
 	"net/http"
@@ -87,25 +86,25 @@ func UserCheck() gin.HandlerFunc {
 	}
 }
 
-func URLSIDCheck() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var input []string
+func URLSIDCheck(c *gin.Context) {
 
-		err := json.NewDecoder(c.Request.Body).Decode(&input)
-		if err != nil {
-			http.Error(c.Writer, err.Error(), http.StatusBadRequest)
+	var input []string
+
+	err := json.NewDecoder(c.Request.Body).Decode(&input)
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	for _, id := range input {
+		if len([]rune(id)) != 5 {
+			http.Error(c.Writer, fmt.Sprintf("invalid url id: %v", id), http.StatusBadRequest)
 			return
 		}
-
-		for _, id := range input {
-			if len([]rune(id)) != 5 {
-				http.Error(c.Writer, fmt.Sprintf("invalid url id: %v", id), http.StatusBadRequest)
-				return
-			}
-		}
-		c.Set(urlIDSliceCtx, input)
-		c.Next()
 	}
+	c.Set(urlIDSliceCtx, input)
+	c.Next()
+
 }
 
 func shouldCompress(req *http.Request) bool {
@@ -152,14 +151,14 @@ func getUserID(c *gin.Context) (string, error) {
 	id, ok := c.Get(userCtx)
 
 	if !ok {
-		http.Error(c.Writer, "user not found", http.StatusInternalServerError)
-		return "", errors.New("user id not found")
+
+		return "", ErrNoUserID
 	}
 
 	idstring, ok := id.(string)
 	if !ok {
-		http.Error(c.Writer, "user id is of ivalid type", http.StatusInternalServerError)
-		return "", errors.New("user id is of ivalid type")
+
+		return "", ErrInvalidUserID
 	}
 
 	return idstring, nil
@@ -170,13 +169,13 @@ func getUrlsArray(c *gin.Context) ([]string, error) {
 
 	if !ok {
 
-		return nil, errors.New("data array not found")
+		return nil, ErrNoDataArray
 	}
 
 	idsArray, ok := ids.([]string)
 	if !ok {
 
-		return nil, errors.New("data array is of ivalid type")
+		return nil, ErrInvalidDataArray
 	}
 
 	return idsArray, nil

@@ -65,7 +65,7 @@ func (h *Handler) MultipleShortHandler(c *gin.Context) {
 		return
 	}
 	var input []entity.URLBatchInput
-
+	logrus.Print(input)
 	err = json.NewDecoder(c.Request.Body).Decode(&input)
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusBadRequest)

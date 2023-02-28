@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -68,41 +69,45 @@ func GzipUnpack() gin.HandlerFunc {
 	}
 }
 
-func UserCheck() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		cook, err := c.Cookie("UserID")
-		if err != nil {
-			cook = generateCook()
-			c.SetCookie("UserID", cook, 3600*24, "/", "localhost", false, false)
+func (h *Handler) userCheck(c *gin.Context) {
 
-		}
-		if checkCook(cook) {
-			c.Set(userCtx, cook)
-			c.Next()
-		} else {
-			c.AbortWithStatus(http.StatusUnauthorized)
-		}
+	cook, err := c.Cookie(userCtx)
+
+	if err != nil {
+
+		cook = generateCook()
+		c.SetCookie(userCtx, cook, 3600*24, "/", "localhost", false, false)
 
 	}
+	if checkCook(cook) {
+		c.Set(userCtx, cook)
+		c.Next()
+	} else {
+		c.AbortWithStatus(http.StatusUnauthorized)
+	}
+	c.Next()
 }
 
-func URLSIDCheck(c *gin.Context) {
+func (h *Handler) checkURLSID(c *gin.Context) {
 
 	var input []string
 
 	err := json.NewDecoder(c.Request.Body).Decode(&input)
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
+
 		return
 	}
 
 	for _, id := range input {
 		if len([]rune(id)) != 5 {
 			http.Error(c.Writer, fmt.Sprintf("invalid url id: %v", id), http.StatusBadRequest)
+
 			return
 		}
 	}
 	c.Set(urlIDSliceCtx, input)
+
 	c.Next()
 
 }
@@ -127,13 +132,13 @@ func generateCook() string {
 	return res
 }
 
-func checkCook(id string) bool {
+func checkCook(cook string) bool {
 
 	var (
 		data []byte
 		err  error
 	)
-	data, err = hex.DecodeString(id)
+	data, err = hex.DecodeString(cook)
 
 	if err != nil {
 
@@ -143,7 +148,8 @@ func checkCook(id string) bool {
 	h := hmac.New(sha256.New, []byte(secretKey))
 	h.Write(data[:5])
 	sign := h.Sum(nil)
-
+	logrus.Print(string(data[5:]))
+	logrus.Print(string(sign))
 	return hmac.Equal(sign, data[5:])
 }
 

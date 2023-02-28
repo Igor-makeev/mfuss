@@ -1,7 +1,12 @@
 package handler
 
 import (
+	"bytes"
 	"errors"
+	"mfuss/configs"
+	"mfuss/internal/mock"
+	"mfuss/internal/repositories"
+	"mfuss/internal/service"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -10,54 +15,77 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func TestGzipCompress(t *testing.T) {
+func TestHandler_checkURLSID(t *testing.T) {
+	type fields struct {
+		Service *service.Service
+		Router  *gin.Engine
+	}
 	type args struct {
-		level int
+		c    *gin.Context
+		body []byte
 	}
-	tests := []struct {
-		name string
-		args args
-		want gin.HandlerFunc
-	}{
-		// TODO: Add test cases.
+	type want struct {
+		statusCode         int
+		urlIDSliceCtxExist bool
+		urlIDSliceCtx      any
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := GzipCompress(tt.args.level); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GzipCompress() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
+	cfg := configs.Config{SrvAddr: "localhost:8080", BaseURL: "http://localhost:8080"}
 
-func TestGzipUnpack(t *testing.T) {
-	tests := []struct {
-		name string
-		want gin.HandlerFunc
-	}{
-		// TODO: Add test cases.
+	storage := mock.NewStorageMock(&cfg)
+	rep := &repositories.Repository{
+		URLStorager: storage,
+		Config:      &cfg,
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := GzipUnpack(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GzipUnpack() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
+	service := service.NewService(rep)
+	rr := httptest.NewRecorder()
+	ctx, Router := gin.CreateTestContext(rr)
 
-func TestUserCheck(t *testing.T) {
 	tests := []struct {
-		name string
-		want gin.HandlerFunc
+		name   string
+		fields fields
+		args   args
+		want   want
 	}{
-		// TODO: Add test cases.
+		{
+			name:   "cant decode",
+			fields: fields{Service: service, Router: Router},
+			args:   args{c: ctx, body: []byte(`1928719827491`)},
+			want:   want{statusCode: http.StatusBadRequest, urlIDSliceCtx: nil, urlIDSliceCtxExist: false},
+		},
+		{
+			name:   "wrong input",
+			fields: fields{Service: service, Router: Router},
+			args:   args{c: ctx, body: []byte(`["asdff","asdfff"]`)},
+			want:   want{statusCode: http.StatusBadRequest, urlIDSliceCtx: nil, urlIDSliceCtxExist: false},
+		},
+		{
+			name:   "correct input",
+			fields: fields{Service: service, Router: Router},
+			args:   args{c: ctx, body: []byte(`["asdff","asdfw"]`)},
+			want:   want{statusCode: http.StatusBadRequest, urlIDSliceCtx: []string{"asdff", "asdfw"}, urlIDSliceCtxExist: true},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := UserCheck(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("UserCheck() = %v, want %v", got, tt.want)
+			h := &Handler{
+				Service: tt.fields.Service,
+				Router:  tt.fields.Router,
 			}
+			body := tt.args.body
+			req := httptest.NewRequest(http.MethodPost, "http://localhost:8080", bytes.NewReader(body))
+
+			tt.args.c.Request = req
+
+			h.checkURLSID(tt.args.c)
+			got := rr.Result().StatusCode
+			if got != tt.want.statusCode {
+				t.Errorf("checkURLSID() status = %v, want %v", got, tt.want.statusCode)
+			}
+			_, ok := tt.args.c.Get(urlIDSliceCtx)
+			if ok != tt.want.urlIDSliceCtxExist {
+				t.Errorf("checkURLSID() urlIDSliceCtxExist = %v, want %v", ok, tt.want.urlIDSliceCtxExist)
+			}
+
 		})
 	}
 }
@@ -305,24 +333,6 @@ func Test_genetareUserID(t *testing.T) {
 			if got := genetareUserID(); reflect.TypeOf(got).Kind() != tt.want {
 				t.Errorf("genetareUserID() = %v, want %v", got, tt.want)
 			}
-		})
-	}
-}
-
-func TestURLSIDCheck(t *testing.T) {
-	//TODO
-	type args struct {
-		c *gin.Context
-	}
-	tests := []struct {
-		name string
-		args args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			URLSIDCheck(tt.args.c)
 		})
 	}
 }

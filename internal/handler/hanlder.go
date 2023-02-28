@@ -17,8 +17,8 @@ func NewHandler(service *service.Service) *Handler {
 		Router:  gin.New(),
 		Service: service,
 	}
-	handler.Router.Use(UserCheck())
-	root := handler.Router.Group("/")
+
+	root := handler.Router.Group("/", handler.userCheck)
 	{
 
 		root.POST("/", GzipUnpack(), handler.PostHandler)
@@ -30,7 +30,7 @@ func NewHandler(service *service.Service) *Handler {
 			api.POST("/shorten/batch", handler.MultipleShortHandler)
 			api.POST("/shorten", GzipUnpack(), handler.PostJSONHandler)
 			api.GET("/user/urls", handler.GetUserURLs)
-			api.Use(URLSIDCheck).DELETE("/user/urls", handler.DeleteUrls)
+			api.DELETE("/user/urls", handler.checkURLSID, handler.DeleteUrls)
 		}
 	}
 

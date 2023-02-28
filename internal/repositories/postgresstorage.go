@@ -82,6 +82,7 @@ func (ps *PostgresStorage) GetShortURL(ctx context.Context, id, userID string) (
 }
 
 func (ps *PostgresStorage) SaveURL(ctx context.Context, input, userID string) (string, error) {
+	logrus.Print(input)
 	ps.Lock()
 	defer ps.Unlock()
 	ctx, cancel := context.WithTimeout(ctx, time.Second*3)

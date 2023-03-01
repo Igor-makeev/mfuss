@@ -1,4 +1,4 @@
-package errorsEntity
+package errorsentity
 
 import "fmt"
 

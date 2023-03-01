@@ -1,7 +1,6 @@
 package utilits
 
 import (
-	"fmt"
 	"math/rand"
 	"net/url"
 	"time"
@@ -18,14 +17,6 @@ func GenetareID() string {
 	}
 
 	return string(buf)
-}
-
-type URLConflict struct {
-	Str string
-}
-
-func (is URLConflict) Error() string {
-	return fmt.Sprintf("error:  url: %v has already been shortened", is.Str)
 }
 
 func CheckURL(shortURLId string) error {

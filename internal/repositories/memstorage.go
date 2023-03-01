@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"mfuss/configs"
 	"mfuss/internal/entity"
+	errorsEntity "mfuss/internal/entity/errors"
 	"mfuss/internal/utilits"
 	"sync"
 )
@@ -26,7 +27,7 @@ type MemoryStorage struct {
 func NewMemoryStorage(cfg *configs.Config, dumper Dumper) *MemoryStorage {
 
 	return &MemoryStorage{
-		URLStore: make(map[string]*entity.ShortURL),
+		URLStore: make(map[string]*entity.ShortURL, 5),
 		Dumper:   dumper,
 		cfg:      *cfg,
 	}
@@ -64,7 +65,7 @@ func (ms *MemoryStorage) SaveURL(ctx context.Context, input, userID string) (str
 	defer ms.Unlock()
 	for _, value := range ms.URLStore {
 		if value.Origin == input {
-			return value.ResultURL, utilits.URLConflict{Str: value.Origin}
+			return value.ResultURL, errorsEntity.URLConflict{Str: value.Origin}
 		}
 	}
 

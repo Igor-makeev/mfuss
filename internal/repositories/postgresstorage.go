@@ -4,6 +4,7 @@ import (
 	"context"
 	"mfuss/configs"
 	"mfuss/internal/entity"
+	errorsEntity "mfuss/internal/entity/errors"
 	"mfuss/internal/utilits"
 	"mfuss/schema"
 	"sync"
@@ -96,7 +97,7 @@ func (ps *PostgresStorage) SaveURL(ctx context.Context, input, userID string) (s
 	}
 
 	if url.ID != id {
-		return url.ResultURL, utilits.URLConflict{Str: url.Origin}
+		return url.ResultURL, errorsEntity.URLConflict{Str: url.Origin}
 	}
 
 	return url.ResultURL, nil

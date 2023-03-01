@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"io"
+	errorsEntity "mfuss/internal/entity/errors"
 	"mfuss/internal/utilits"
 	"net/http"
 	"net/url"
@@ -35,7 +36,7 @@ func (h *Handler) PostHandler(c *gin.Context) {
 	shortURL, err := h.Service.SaveURL(c.Request.Context(), string(body), userID)
 
 	if err != nil {
-		_, ok := err.(utilits.URLConflict)
+		_, ok := err.(errorsEntity.URLConflict)
 
 		if !ok {
 			http.Error(c.Writer, err.Error(), http.StatusInternalServerError)

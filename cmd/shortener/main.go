@@ -3,11 +3,14 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"mfuss/configs"
 	"mfuss/internal/handler"
 	"mfuss/internal/repositories"
 	"mfuss/internal/server"
 	"mfuss/internal/service"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
@@ -29,13 +32,16 @@ func main() {
 	service.Queue.Run(ctx)
 
 	handler := handler.NewHandler(service)
-
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 	srv := new(server.Server)
 
 	serverErrChan := srv.Run(cfg, handler)
 
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
+
 	select {
 	case <-signals:
 

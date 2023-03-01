@@ -18,7 +18,7 @@ type Config struct {
 func NewConfig() *Config {
 	var cfg Config
 
-	flag.StringVar(&cfg.SrvAddr, "a", "localhost:8080", "server addres to listen on")
+	flag.StringVar(&cfg.SrvAddr, "a", ":8080", "server addres to listen on")
 	flag.StringVar(&cfg.BaseURL, "b", "http://localhost:8080", "shortener base URL")
 	flag.StringVar(&cfg.FileStoragePath, "f", "file_storage.txt", "path to storage file")
 	flag.StringVar(&cfg.DBDSN, "d", "", "database adress")

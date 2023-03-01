@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"mfuss/internal/entity"
+	errorsEntity "mfuss/internal/entity/errors"
 	"mfuss/internal/utilits"
 	"net/http"
 
@@ -36,7 +37,7 @@ func (h *Handler) PostJSONHandler(c *gin.Context) {
 	shortURL, err := h.Service.SaveURL(c.Request.Context(), input.URL, userID)
 
 	if err != nil {
-		_, ok := err.(utilits.URLConflict)
+		_, ok := err.(errorsEntity.URLConflict)
 
 		if !ok {
 			http.Error(c.Writer, err.Error(), http.StatusInternalServerError)

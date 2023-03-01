@@ -4,6 +4,7 @@ import (
 	"compress/gzip"
 	"mfuss/internal/service"
 
+	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,6 +19,8 @@ func NewHandler(service *service.Service) *Handler {
 		Service: service,
 	}
 
+	pprof.Register(handler.Router)
+
 	root := handler.Router.Group("/", handler.userCheck)
 	{
 
@@ -25,7 +28,7 @@ func NewHandler(service *service.Service) *Handler {
 		root.GET("/:id", GzipCompress(gzip.DefaultCompression), handler.GetURLHandler)
 		root.GET("/ping", handler.GetPingHandler)
 
-		api := handler.Router.Group("api", handler.userCheck)
+		api := root.Group("api")
 		{
 			api.POST("/shorten/batch", handler.MultipleShortHandler)
 			api.POST("/shorten", GzipUnpack(), handler.PostJSONHandler)

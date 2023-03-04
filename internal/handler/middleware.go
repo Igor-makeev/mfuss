@@ -31,6 +31,7 @@ type gzipWriter struct {
 	writer *gzip.Writer
 }
 
+// GzipCompress — мидлваре архивирующий ответ в формате gzip.
 func GzipCompress(level int) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if !shouldCompress(c.Request) {
@@ -51,6 +52,7 @@ func GzipCompress(level int) gin.HandlerFunc {
 	}
 }
 
+// GzipUnpack — мидлваре разархивирующий ответ в формате gzip.
 func GzipUnpack() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if !shouldUnpack(c.Request) {
@@ -69,6 +71,7 @@ func GzipUnpack() gin.HandlerFunc {
 	}
 }
 
+// userCheck — мидлваре проверяющий прова доступа у пользователя.
 func (h *Handler) userCheck(c *gin.Context) {
 
 	cook, err := c.Cookie(userCtx)
@@ -88,6 +91,7 @@ func (h *Handler) userCheck(c *gin.Context) {
 	c.Next()
 }
 
+// checkURLSID — мидлваре проверяющий валидность переданных на удаление ID.
 func (h *Handler) checkURLSID(c *gin.Context) {
 
 	var input []string
@@ -112,16 +116,19 @@ func (h *Handler) checkURLSID(c *gin.Context) {
 
 }
 
+// shouldCompress — функция проверяющая загловок.
 func shouldCompress(req *http.Request) bool {
 	return strings.Contains(req.Header.Get("Accept-Encoding"), "gzip")
 
 }
 
+// shouldUnpack — функция проверяющая загловок.
 func shouldUnpack(req *http.Request) bool {
 	return strings.Contains(req.Header.Get("Content-Encoding"), "gzip")
 
 }
 
+// generateCook — функция генерирующая Cook.
 func generateCook() string {
 	uuid := []byte(genetareUserID())
 
@@ -132,6 +139,7 @@ func generateCook() string {
 	return res
 }
 
+// checkCook — функция проверяющая Cook.
 func checkCook(cook string) bool {
 
 	var (
@@ -153,6 +161,7 @@ func checkCook(cook string) bool {
 	return hmac.Equal(sign, data[5:])
 }
 
+// getUserID — функция плучающая id  пользователя из контекста.
 func getUserID(c *gin.Context) (string, error) {
 	id, ok := c.Get(userCtx)
 
@@ -170,6 +179,7 @@ func getUserID(c *gin.Context) (string, error) {
 	return idstring, nil
 }
 
+// getUrlsArray — функция плучающая массив url идентификаторов пользователя из контекста.
 func getUrlsArray(c *gin.Context) ([]string, error) {
 	ids, ok := c.Get(urlIDSliceCtx)
 
@@ -187,6 +197,7 @@ func getUrlsArray(c *gin.Context) ([]string, error) {
 	return idsArray, nil
 }
 
+// genetareUserID — функция генерирующая идентификатор пользователя.
 func genetareUserID() string {
 	buf := make([]byte, 5)
 	for i := range buf {

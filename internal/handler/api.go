@@ -14,6 +14,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// PostJSONHandler — хэндлер принимающий в теле запроса JSON-объект {"url":"<some_url>"} и возвращающий в ответ объект {"result":"<shorten_url>"}.
 func (h *Handler) PostJSONHandler(c *gin.Context) {
 	userID, err := getUserID(c)
 	if err != nil {
@@ -59,6 +60,7 @@ func (h *Handler) PostJSONHandler(c *gin.Context) {
 
 }
 
+// PostJSONHandler — хэндлер  POST /api/shorten/batch, принимающий в теле запроса множество URL для сокращения.
 func (h *Handler) MultipleShortHandler(c *gin.Context) {
 	userID, err := getUserID(c)
 	if err != nil {
@@ -83,6 +85,7 @@ func (h *Handler) MultipleShortHandler(c *gin.Context) {
 
 }
 
+// GetUserURLs - хэндлер GET / возвращает все URL скращенные пользователем.
 func (h *Handler) GetUserURLs(c *gin.Context) {
 	userID, err := getUserID(c)
 	if err != nil {
@@ -101,6 +104,8 @@ func (h *Handler) GetUserURLs(c *gin.Context) {
 	c.JSON(http.StatusOK, urls)
 
 }
+
+//DeleteUrls — асинхронный хендлер DELETE /api/user/urls, который принимает список идентификаторов сокращённых URL для удаления в формате:[ "a", "b", "c", "d", ...]
 
 func (h *Handler) DeleteUrls(c *gin.Context) {
 

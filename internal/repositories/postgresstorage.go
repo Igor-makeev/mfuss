@@ -83,7 +83,7 @@ func (ps *PostgresStorage) GetShortURL(ctx context.Context, id, userID string) (
 }
 
 func (ps *PostgresStorage) SaveURL(ctx context.Context, input, userID string) (string, error) {
-	logrus.Print(input)
+
 	ps.Lock()
 	defer ps.Unlock()
 	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
@@ -118,7 +118,7 @@ func (ps *PostgresStorage) MultipleShort(ctx context.Context, input []entity.URL
 	var responseBatch []entity.URLBatchResponse
 
 	for _, v := range input {
-		logrus.Print(v.URL)
+
 		res, err := ps.SaveURL(ctx, v.URL, userID)
 		if err != nil {
 			return nil, err

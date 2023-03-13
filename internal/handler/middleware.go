@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -156,8 +155,7 @@ func checkCook(cook string) bool {
 	h := hmac.New(sha256.New, []byte(secretKey))
 	h.Write(data[:5])
 	sign := h.Sum(nil)
-	logrus.Print(string(data[5:]))
-	logrus.Print(string(sign))
+
 	return hmac.Equal(sign, data[5:])
 }
 

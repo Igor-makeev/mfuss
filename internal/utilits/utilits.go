@@ -8,16 +8,7 @@ import (
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-func GenetareID() string {
-	rand.Seed(time.Now().UnixNano())
-
-	buf := make([]byte, 5)
-	for i := range buf {
-		buf[i] = letterBytes[rand.Intn(len(letterBytes))]
-	}
-
-	return string(buf)
-}
+var r = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 func CheckURL(shortURLId string) error {
 	if _, err := url.ParseRequestURI(shortURLId); err != nil {
@@ -25,4 +16,14 @@ func CheckURL(shortURLId string) error {
 		return err
 	}
 	return nil
+}
+
+func GenetareID() string {
+
+	buf := make([]byte, 5)
+	for i := range buf {
+		buf[i] = letterBytes[r.Intn(len(letterBytes))]
+	}
+
+	return string(buf)
 }

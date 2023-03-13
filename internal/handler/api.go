@@ -11,7 +11,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 // PostJSONHandler — хэндлер принимающий в теле запроса JSON-объект {"url":"<some_url>"} и возвращающий в ответ объект {"result":"<shorten_url>"}.
@@ -34,7 +33,7 @@ func (h *Handler) PostJSONHandler(c *gin.Context) {
 		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
 		return
 	}
-	logrus.Printf("in postgson handler :%v", input.URL)
+
 	shortURL, err := h.Service.SaveURL(c.Request.Context(), input.URL, userID)
 
 	if err != nil {
@@ -74,7 +73,7 @@ func (h *Handler) MultipleShortHandler(c *gin.Context) {
 		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
 		return
 	}
-	logrus.Print(input)
+
 	responseBatch, err := h.Service.MultipleShort(c.Request.Context(), input, userID)
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)

@@ -1,3 +1,4 @@
+// Пакет конфигурации приложения
 package configs
 
 import (
@@ -8,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Config - тип структуры конфигурации приложения.
 type Config struct {
 	SrvAddr         string `env:"SERVER_ADDRESS" `
 	BaseURL         string `env:"BASE_URL" `
@@ -15,10 +17,12 @@ type Config struct {
 	DBDSN           string `env:"DATABASE_DSN"`
 }
 
+// Конструктор конфигов
 func NewConfig() *Config {
+	// Инизциализируем конфиг.
 	var cfg Config
 
-	flag.StringVar(&cfg.SrvAddr, "a", "localhost:8080", "server addres to listen on")
+	flag.StringVar(&cfg.SrvAddr, "a", ":8080", "server addres to listen on")
 	flag.StringVar(&cfg.BaseURL, "b", "http://localhost:8080", "shortener base URL")
 	flag.StringVar(&cfg.FileStoragePath, "f", "file_storage.txt", "path to storage file")
 	flag.StringVar(&cfg.DBDSN, "d", "", "database adress")

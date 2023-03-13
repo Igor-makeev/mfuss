@@ -2,11 +2,15 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"log"
 	"mfuss/configs"
 	"mfuss/internal/handler"
 	"mfuss/internal/repositories"
 	"mfuss/internal/server"
 	"mfuss/internal/service"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
@@ -28,32 +32,32 @@ func main() {
 	service.Queue.Run(ctx)
 
 	handler := handler.NewHandler(service)
-
-	srv := server.NewURLServer(handler)
-
 	go func() {
-
-		if err := srv.ListenAndServe(); err != nil {
-
-			logrus.Fatalf("failed to listen and serve: %+v", err.Error())
-		}
+		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
+	srv := new(server.Server)
 
-	logrus.Print("shortener started...")
+	serverErrChan := srv.Run(cfg, handler)
 
-	quit := make(chan os.Signal, 1)
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
 
-	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
+	select {
+	case <-signals:
 
-	<-quit
+		fmt.Println("main: got terminate signal. Shutting down...")
+		if service.Close(ctx); err != nil {
+			logrus.Errorf("error occured on closing service: %s", err.Error())
+		}
+		if err := srv.Shutdown(); err != nil {
+			fmt.Printf("main: received an error while shutting down the server: %v", err)
+		}
 
-	logrus.Print("shortener shuting down.")
+	case <-serverErrChan:
+		if service.Close(ctx); err != nil {
+			logrus.Errorf("error occured on closing service: %s", err.Error())
+		}
+		fmt.Println("main: got server err signal. Shutting down...")
 
-	if service.Close(ctx); err != nil {
-		logrus.Errorf("error occured on closing service: %s", err.Error())
 	}
-	if err := srv.Shutdown(context.Background()); err != nil {
-		logrus.Errorf("error occured on server shuting down: %s", err.Error())
-	}
-
 }

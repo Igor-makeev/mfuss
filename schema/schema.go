@@ -1,5 +1,6 @@
 package schema
 
+// схема таблицы хранилища ссылок
 var Schema = `
 create table if not exists url_store (
     ID text,
@@ -9,6 +10,7 @@ create table if not exists url_store (
   Is_deleted bool
 );`
 
+// индекс уникальных ссылок
 var Index = `
 CREATE UNIQUE INDEX if not exists url_store_index_unique
   ON url_store

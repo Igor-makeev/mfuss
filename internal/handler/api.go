@@ -6,19 +6,21 @@ import (
 	"fmt"
 	"io"
 	"mfuss/internal/entity"
+	errorsEntity "mfuss/internal/entity/errors"
 	"mfuss/internal/utilits"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
+// PostJSONHandler — хэндлер принимающий в теле запроса JSON-объект {"url":"<some_url>"} и возвращающий в ответ объект {"result":"<shorten_url>"}.
 func (h *Handler) PostJSONHandler(c *gin.Context) {
 	userID, err := getUserID(c)
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusUnauthorized)
 		return
 	}
-
+	//инициализируем структуру в которую будем декодить входящие данные
 	var input entity.URLInput
 	buf := new(bytes.Buffer)
 
@@ -35,7 +37,7 @@ func (h *Handler) PostJSONHandler(c *gin.Context) {
 	shortURL, err := h.Service.SaveURL(c.Request.Context(), input.URL, userID)
 
 	if err != nil {
-		_, ok := err.(utilits.URLConflict)
+		_, ok := err.(errorsEntity.URLConflict)
 
 		if !ok {
 			http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
@@ -57,12 +59,14 @@ func (h *Handler) PostJSONHandler(c *gin.Context) {
 
 }
 
+// PostJSONHandler — хэндлер  POST /api/shorten/batch, принимающий в теле запроса множество URL для сокращения.
 func (h *Handler) MultipleShortHandler(c *gin.Context) {
 	userID, err := getUserID(c)
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusUnauthorized)
 		return
 	}
+	//инициализируем структуру в которую будем декодить входящие данные
 	var input []entity.URLBatchInput
 
 	err = json.NewDecoder(c.Request.Body).Decode(&input)
@@ -81,6 +85,7 @@ func (h *Handler) MultipleShortHandler(c *gin.Context) {
 
 }
 
+// GetUserURLs - хэндлер GET / возвращает все URL скращенные пользователем.
 func (h *Handler) GetUserURLs(c *gin.Context) {
 	userID, err := getUserID(c)
 	if err != nil {
@@ -100,6 +105,7 @@ func (h *Handler) GetUserURLs(c *gin.Context) {
 
 }
 
+// DeleteUrls — асинхронный хендлер DELETE /api/user/urls, который принимает список идентификаторов сокращённых URL для удаления в формате:[ "a", "b", "c", "d", ...]
 func (h *Handler) DeleteUrls(c *gin.Context) {
 
 	inputArray, err := getUrlsArray(c)

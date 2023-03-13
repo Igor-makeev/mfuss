@@ -7,24 +7,29 @@ import (
 	"os"
 )
 
+// Тип Dump
 type Dump struct {
 	file    *os.File
 	writer  *bufio.Writer
 	scanner *bufio.Scanner
 }
 
+// Конструктор Dump
 func NewDump(filename string) (*Dump, error) {
+
 	file, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0777)
 	if err != nil {
 		return nil, err
 	}
 	return &Dump{
+
 		file:    file,
 		writer:  bufio.NewWriter(file),
 		scanner: bufio.NewScanner(file),
 	}, nil
 }
 
+// Функция сохраняющая данный в дамп
 func (d *Dump) SaveData(ms map[string]*entity.ShortURL) error {
 	for _, value := range ms {
 
@@ -37,6 +42,7 @@ func (d *Dump) SaveData(ms map[string]*entity.ShortURL) error {
 
 }
 
+// // Функция загружающая данный из дампа
 func (d *Dump) LoadData(ms map[string]*entity.ShortURL) error {
 
 	d.scanner.Split(bufio.ScanLines)
@@ -55,6 +61,7 @@ func (d *Dump) LoadData(ms map[string]*entity.ShortURL) error {
 	return d.scanner.Err()
 }
 
+// Функция сохраняющая ссылку в дамп
 func (d *Dump) WriteURL(URL *entity.ShortURL) error {
 	data, err := json.Marshal(&URL)
 	if err != nil {
@@ -70,6 +77,7 @@ func (d *Dump) WriteURL(URL *entity.ShortURL) error {
 
 }
 
+// Функция закрывающая доступ к факлу
 func (d *Dump) Close() error {
 
 	return d.file.Close()

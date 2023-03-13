@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	mrand "math/rand"
 	"net/http"
@@ -15,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Константы middleware
 const (
 	BestCompression    = gzip.BestCompression
 	BestSpeed          = gzip.BestSpeed
@@ -26,11 +26,13 @@ const (
 	urlIDSliceCtx      = "input_id"
 )
 
+// Тип gzipWriter
 type gzipWriter struct {
 	gin.ResponseWriter
 	writer *gzip.Writer
 }
 
+// GzipCompress — мидлваре архивирующий ответ в формате gzip.
 func GzipCompress(level int) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if !shouldCompress(c.Request) {
@@ -51,6 +53,7 @@ func GzipCompress(level int) gin.HandlerFunc {
 	}
 }
 
+// GzipUnpack — мидлваре разархивирующий ответ в формате gzip.
 func GzipUnpack() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if !shouldUnpack(c.Request) {
@@ -69,55 +72,64 @@ func GzipUnpack() gin.HandlerFunc {
 	}
 }
 
-func UserCheck() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		cook, err := c.Cookie("UserID")
-		if err != nil {
-			cook = generateCook()
-			c.SetCookie("UserID", cook, 3600*24, "/", "localhost", false, false)
+// userCheck — мидлваре проверяющий прова доступа у пользователя.
+func (h *Handler) userCheck(c *gin.Context) {
 
-		}
-		if checkCook(cook) {
-			c.Set(userCtx, cook)
-			c.Next()
-		} else {
-			c.AbortWithStatus(http.StatusUnauthorized)
-		}
+	cook, err := c.Cookie(userCtx)
+
+	if err != nil {
+
+		cook = generateCook()
+		c.SetCookie(userCtx, cook, 3600*24, "/", "localhost", false, false)
 
 	}
+	if checkCook(cook) {
+		c.Set(userCtx, cook)
+		c.Next()
+	} else {
+		c.AbortWithStatus(http.StatusUnauthorized)
+	}
+	c.Next()
 }
 
-func URLSIDCheck() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var input []string
+// checkURLSID — мидлваре проверяющий валидность переданных на удаление ID.
+func (h *Handler) checkURLSID(c *gin.Context) {
+	//алоцируем память массив в который будем декодить данные
+	var input []string
 
-		err := json.NewDecoder(c.Request.Body).Decode(&input)
-		if err != nil {
-			http.Error(c.Writer, err.Error(), http.StatusBadRequest)
+	err := json.NewDecoder(c.Request.Body).Decode(&input)
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
+
+		return
+	}
+
+	for _, id := range input {
+		if len([]rune(id)) != 5 {
+			http.Error(c.Writer, fmt.Sprintf("invalid url id: %v", id), http.StatusBadRequest)
+
 			return
 		}
-
-		for _, id := range input {
-			if len([]rune(id)) != 5 {
-				http.Error(c.Writer, fmt.Sprintf("invalid url id: %v", id), http.StatusBadRequest)
-				return
-			}
-		}
-		c.Set(urlIDSliceCtx, input)
-		c.Next()
 	}
+	c.Set(urlIDSliceCtx, input)
+
+	c.Next()
+
 }
 
+// shouldCompress — функция проверяющая загловок.
 func shouldCompress(req *http.Request) bool {
 	return strings.Contains(req.Header.Get("Accept-Encoding"), "gzip")
 
 }
 
+// shouldUnpack — функция проверяющая загловок.
 func shouldUnpack(req *http.Request) bool {
 	return strings.Contains(req.Header.Get("Content-Encoding"), "gzip")
 
 }
 
+// generateCook — функция генерирующая Cook.
 func generateCook() string {
 	uuid := []byte(genetareUserID())
 
@@ -128,13 +140,14 @@ func generateCook() string {
 	return res
 }
 
-func checkCook(id string) bool {
-
+// checkCook — функция проверяющая Cook.
+func checkCook(cook string) bool {
+	//Алоцируем память под массив байт в который будем декодить куку
 	var (
 		data []byte
 		err  error
 	)
-	data, err = hex.DecodeString(id)
+	data, err = hex.DecodeString(cook)
 
 	if err != nil {
 
@@ -148,40 +161,43 @@ func checkCook(id string) bool {
 	return hmac.Equal(sign, data[5:])
 }
 
+// getUserID — функция плучающая id  пользователя из контекста.
 func getUserID(c *gin.Context) (string, error) {
 	id, ok := c.Get(userCtx)
 
 	if !ok {
-		http.Error(c.Writer, "user not found", http.StatusInternalServerError)
-		return "", errors.New("user id not found")
+
+		return "", ErrNoUserID
 	}
 
 	idstring, ok := id.(string)
 	if !ok {
-		http.Error(c.Writer, "user id is of ivalid type", http.StatusInternalServerError)
-		return "", errors.New("user id is of ivalid type")
+
+		return "", ErrInvalidUserID
 	}
 
 	return idstring, nil
 }
 
+// getUrlsArray — функция плучающая массив url идентификаторов пользователя из контекста.
 func getUrlsArray(c *gin.Context) ([]string, error) {
 	ids, ok := c.Get(urlIDSliceCtx)
 
 	if !ok {
 
-		return nil, errors.New("data array not found")
+		return nil, ErrNoDataArray
 	}
 
 	idsArray, ok := ids.([]string)
 	if !ok {
 
-		return nil, errors.New("data array is of ivalid type")
+		return nil, ErrInvalidDataArray
 	}
 
 	return idsArray, nil
 }
 
+// genetareUserID — функция генерирующая идентификатор пользователя.
 func genetareUserID() string {
 	buf := make([]byte, 5)
 	for i := range buf {

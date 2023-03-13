@@ -1,3 +1,4 @@
+// Пакет конфигурации приложения
 package configs
 
 import (
@@ -16,6 +17,7 @@ type Config struct {
 	DBDSN           string `env:"DATABASE_DSN"`
 }
 
+// Конструктор конфигов
 func NewConfig() *Config {
 	// Инизциализируем конфиг.
 	var cfg Config

@@ -105,8 +105,7 @@ func (h *Handler) GetUserURLs(c *gin.Context) {
 
 }
 
-//DeleteUrls — асинхронный хендлер DELETE /api/user/urls, который принимает список идентификаторов сокращённых URL для удаления в формате:[ "a", "b", "c", "d", ...]
-
+// DeleteUrls — асинхронный хендлер DELETE /api/user/urls, который принимает список идентификаторов сокращённых URL для удаления в формате:[ "a", "b", "c", "d", ...]
 func (h *Handler) DeleteUrls(c *gin.Context) {
 
 	inputArray, err := getUrlsArray(c)

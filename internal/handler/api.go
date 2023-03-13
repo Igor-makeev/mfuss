@@ -20,7 +20,7 @@ func (h *Handler) PostJSONHandler(c *gin.Context) {
 		http.Error(c.Writer, err.Error(), http.StatusUnauthorized)
 		return
 	}
-
+	//инициализируем структуру в которую будем декодить входящие данные
 	var input entity.URLInput
 	buf := new(bytes.Buffer)
 
@@ -66,6 +66,7 @@ func (h *Handler) MultipleShortHandler(c *gin.Context) {
 		http.Error(c.Writer, err.Error(), http.StatusUnauthorized)
 		return
 	}
+	//инициализируем структуру в которую будем декодить входящие данные
 	var input []entity.URLBatchInput
 
 	err = json.NewDecoder(c.Request.Body).Decode(&input)

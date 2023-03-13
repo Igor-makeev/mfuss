@@ -17,6 +17,7 @@ type Config struct {
 }
 
 func NewConfig() *Config {
+	// Инизциализируем конфиг.
 	var cfg Config
 
 	flag.StringVar(&cfg.SrvAddr, "a", ":8080", "server addres to listen on")

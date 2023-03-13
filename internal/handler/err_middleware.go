@@ -2,6 +2,7 @@ package handler
 
 import "errors"
 
+// кастомные ошибки пакета handler
 var (
 	ErrNoDataArray      = errors.New("data array not found")
 	ErrInvalidDataArray = errors.New("data array is of ivalid type")

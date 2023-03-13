@@ -14,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Константы middleware
 const (
 	BestCompression    = gzip.BestCompression
 	BestSpeed          = gzip.BestSpeed
@@ -25,6 +26,7 @@ const (
 	urlIDSliceCtx      = "input_id"
 )
 
+// Тип gzipWriter
 type gzipWriter struct {
 	gin.ResponseWriter
 	writer *gzip.Writer
@@ -92,7 +94,7 @@ func (h *Handler) userCheck(c *gin.Context) {
 
 // checkURLSID — мидлваре проверяющий валидность переданных на удаление ID.
 func (h *Handler) checkURLSID(c *gin.Context) {
-
+	//алоцируем память массив в который будем декодить данные
 	var input []string
 
 	err := json.NewDecoder(c.Request.Body).Decode(&input)
@@ -140,7 +142,7 @@ func generateCook() string {
 
 // checkCook — функция проверяющая Cook.
 func checkCook(cook string) bool {
-
+	//Алоцируем память под массив байт в который будем декодить куку
 	var (
 		data []byte
 		err  error

@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Интерфейс хранилища ссылок
 type URLStorager interface {
 	SaveURL(ctx context.Context, input, userID string) (string, error)
 	GetAllURLs(ctx context.Context, userID string) []entity.ShortURL
@@ -19,14 +20,17 @@ type URLStorager interface {
 	Close(ctx context.Context) error
 }
 
+// Структура репозитория
 type Repository struct {
 	URLStorager
 	Config *configs.Config
 }
 
+// КОнструктор
 func NewRepository(cfg *configs.Config) (*Repository, error) {
-
+	//Алокация
 	var urlstorage URLStorager
+	//Алокация
 	var err error
 
 	if cfg.DBDSN == "" {
@@ -49,6 +53,7 @@ func NewRepository(cfg *configs.Config) (*Repository, error) {
 
 }
 
+// Подготовить хранилище данных
 func PrepareMemoryStorage(cfg *configs.Config) (*MemoryStorage, error) {
 
 	dump, err := NewDump(cfg.FileStoragePath)
@@ -65,6 +70,7 @@ func PrepareMemoryStorage(cfg *configs.Config) (*MemoryStorage, error) {
 
 }
 
+// закрыть хранилище данных
 func (rep *Repository) Close(ctx context.Context) error {
 
 	if err := rep.URLStorager.Close(ctx); err != nil {

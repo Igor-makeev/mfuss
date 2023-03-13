@@ -11,12 +11,14 @@ import (
 	"sync"
 )
 
+// Интерфейс дампер
 type Dumper interface {
 	SaveData(ms map[string]*entity.ShortURL) error
 	LoadData(ms map[string]*entity.ShortURL) error
 	Close() error
 }
 
+// Тип мемори сторэдж
 type MemoryStorage struct {
 	sync.Mutex
 	URLStore map[string]*entity.ShortURL
@@ -24,6 +26,7 @@ type MemoryStorage struct {
 	Dumper
 }
 
+// Конструктор
 func NewMemoryStorage(cfg *configs.Config, dumper Dumper) *MemoryStorage {
 
 	return &MemoryStorage{
@@ -34,12 +37,14 @@ func NewMemoryStorage(cfg *configs.Config, dumper Dumper) *MemoryStorage {
 
 }
 
+// Загружает данные из дампа
 func (ms *MemoryStorage) LoadFromDump() error {
 	return ms.Dumper.LoadData(ms.URLStore)
 }
 
+// Получить все сокращенные ссылки пользователя
 func (ms *MemoryStorage) GetAllURLs(ctx context.Context, userID string) []entity.ShortURL {
-
+	//Алокация
 	var urls []entity.ShortURL
 	for _, v := range ms.URLStore {
 		if v.UserID == userID {
@@ -49,6 +54,7 @@ func (ms *MemoryStorage) GetAllURLs(ctx context.Context, userID string) []entity
 	return urls
 }
 
+// Получить сокращенную ссылку
 func (ms *MemoryStorage) GetShortURL(ctx context.Context, id, userID string) (sURL entity.ShortURL, er error) {
 
 	s, ok := ms.URLStore[id]
@@ -60,6 +66,7 @@ func (ms *MemoryStorage) GetShortURL(ctx context.Context, id, userID string) (sU
 
 }
 
+// Сохранить сокращенную ссылку
 func (ms *MemoryStorage) SaveURL(ctx context.Context, input, userID string) (string, error) {
 	ms.Lock()
 	defer ms.Unlock()
@@ -81,6 +88,7 @@ func (ms *MemoryStorage) SaveURL(ctx context.Context, input, userID string) (str
 	return url.ResultURL, nil
 }
 
+// закрыть хранилище
 func (ms *MemoryStorage) Close(ctx context.Context) error {
 
 	if err := ms.Dumper.SaveData(ms.URLStore); err != nil {
@@ -90,8 +98,11 @@ func (ms *MemoryStorage) Close(ctx context.Context) error {
 	return ms.Dumper.Close()
 }
 
+// Сохранение батчами
 func (ms *MemoryStorage) MultipleShort(ctx context.Context, input []entity.URLBatchInput, userID string) ([]entity.URLBatchResponse, error) {
+	//Аллокация
 	var resOutput entity.URLBatchResponse
+	//Аллокация
 	var responseBatch []entity.URLBatchResponse
 
 	for _, v := range input {
@@ -109,12 +120,14 @@ func (ms *MemoryStorage) MultipleShort(ctx context.Context, input []entity.URLBa
 
 }
 
+// Заглушка метода проверки связи
 func (ms *MemoryStorage) Ping(ctx context.Context) error {
 
 	return errors.New("no db connection")
 
 }
 
+// пометить ссылку как удаленную
 func (ms *MemoryStorage) MarkAsDeleted(ctx context.Context, arr []string) error {
 
 	for _, val := range arr {
@@ -125,6 +138,7 @@ func (ms *MemoryStorage) MarkAsDeleted(ctx context.Context, arr []string) error 
 	return nil
 }
 
+// установить флаг удаления
 func (ms *MemoryStorage) setDeletFlag(ID string) {
 
 	for i, v := range ms.URLStore {

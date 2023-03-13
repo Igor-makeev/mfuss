@@ -14,12 +14,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Тип
 type PostgresStorage struct {
 	DB  *pgx.Conn
 	cfg configs.Config
 	sync.Mutex
 }
 
+// Конструктор
 func NewPostgresStorage(cfg *configs.Config, conn *pgx.Conn) *PostgresStorage {
 
 	conn.Exec(context.Background(), schema.Schema)
@@ -32,6 +34,7 @@ func NewPostgresStorage(cfg *configs.Config, conn *pgx.Conn) *PostgresStorage {
 	return ps
 }
 
+// Клиент постгресса
 func NewPostgresClient(cfg *configs.Config) (*pgx.Conn, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
@@ -43,6 +46,7 @@ func NewPostgresClient(cfg *configs.Config) (*pgx.Conn, error) {
 	return conn, err
 }
 
+// получить все ссылки
 func (ps *PostgresStorage) GetAllURLs(ctx context.Context, userID string) []entity.ShortURL {
 	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
@@ -54,6 +58,7 @@ func (ps *PostgresStorage) GetAllURLs(ctx context.Context, userID string) []enti
 	}
 
 	for rows.Next() {
+		//Алокация
 		var url entity.ShortURL
 		err = rows.Scan(&url.ID, &url.ResultURL, &url.Origin, &url.UserID)
 		if err != nil {
@@ -69,11 +74,13 @@ func (ps *PostgresStorage) GetAllURLs(ctx context.Context, userID string) []enti
 	return urls
 }
 
+// получить ссылку из хранилища
 func (ps *PostgresStorage) GetShortURL(ctx context.Context, id, userID string) (sURL entity.ShortURL, er error) {
 	ps.Lock()
 	defer ps.Unlock()
 	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
+	//Алокация
 	var url entity.ShortURL
 	if err := ps.DB.QueryRow(ctx, `select id,result,origin,user_id, Is_deleted from url_store where id=$1 ;`, id).Scan(&url.ID, &url.ResultURL, &url.Origin, &url.UserID, &url.IsDeleted); err != nil {
 		return entity.ShortURL{}, err
@@ -82,12 +89,14 @@ func (ps *PostgresStorage) GetShortURL(ctx context.Context, id, userID string) (
 	return url, nil
 }
 
+// сохранить ссылку
 func (ps *PostgresStorage) SaveURL(ctx context.Context, input, userID string) (string, error) {
 
 	ps.Lock()
 	defer ps.Unlock()
 	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
+	//Алокация
 	var url entity.ShortURL
 	id := utilits.GenetareID()
 	res := ps.cfg.BaseURL + "/" + id
@@ -104,6 +113,7 @@ func (ps *PostgresStorage) SaveURL(ctx context.Context, input, userID string) (s
 
 }
 
+// закрыть хранилище
 func (ps *PostgresStorage) Close(ctx context.Context) error {
 
 	if err := ps.DB.Close(ctx); err != nil {
@@ -113,8 +123,11 @@ func (ps *PostgresStorage) Close(ctx context.Context) error {
 	return nil
 }
 
+// сохранение батчем
 func (ps *PostgresStorage) MultipleShort(ctx context.Context, input []entity.URLBatchInput, userID string) ([]entity.URLBatchResponse, error) {
+	//Аллокация
 	var resOutput entity.URLBatchResponse
+	//Аллокация
 	var responseBatch []entity.URLBatchResponse
 
 	for _, v := range input {
@@ -133,6 +146,7 @@ func (ps *PostgresStorage) MultipleShort(ctx context.Context, input []entity.URL
 
 }
 
+// проверка соединения с бд
 func (ps *PostgresStorage) Ping(ctx context.Context) error {
 	err := ps.DB.Ping(context.Background())
 	if err != nil {
@@ -142,6 +156,7 @@ func (ps *PostgresStorage) Ping(ctx context.Context) error {
 
 }
 
+// пометить ссылки как удаленные
 func (ps *PostgresStorage) MarkAsDeleted(ctx context.Context, arr []string) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()

@@ -8,11 +8,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Стркуктура Обработчика
 type Handler struct {
 	Service *service.Service
 	Router  *gin.Engine
 }
 
+// Конструктор обработчика
 func NewHandler(service *service.Service) *Handler {
 	handler := &Handler{
 		Router:  gin.New(),

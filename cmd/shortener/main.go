@@ -18,7 +18,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var (
+	buildVersion string = "N/A"
+	buildDate    string = "N/A"
+	buildCommit  string = "N/A"
+)
+
 func main() {
+
+	logrus.Printf("Build version: %v", buildVersion)
+	logrus.Printf("Build date: %v", buildDate)
+	logrus.Printf("Build commit: %v", buildCommit)
 
 	cfg := configs.NewConfig()
 

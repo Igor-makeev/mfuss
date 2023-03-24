@@ -24,15 +24,25 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		}
 
 		ast.Inspect(file, func(n ast.Node) bool {
-			if call, ok := n.(*ast.CallExpr); ok {
-				if selector, ok := call.Fun.(*ast.SelectorExpr); ok {
-					if ident, ok := selector.X.(*ast.Ident); ok {
-						if ident.Name == "os" && selector.Sel.Name == "Exit" {
-							pass.Reportf(ident.NamePos, "direct call to os.Exit in main package main function")
-						}
-					}
-				}
+			call, ok := n.(*ast.CallExpr)
+			if !ok {
+				return true
 			}
+
+			selector, ok := call.Fun.(*ast.SelectorExpr)
+			if !ok {
+				return true
+			}
+
+			ident, ok := selector.X.(*ast.Ident)
+			if !ok {
+				return true
+			}
+
+			if ident.Name == "os" && selector.Sel.Name == "Exit" {
+				pass.Reportf(ident.NamePos, "direct call to os.Exit in main package main function")
+			}
+
 			return true
 		})
 	}

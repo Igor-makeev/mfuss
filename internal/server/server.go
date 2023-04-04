@@ -21,6 +21,7 @@ func (s *Server) Run(cfg *configs.Config, handler *handler.Handler) chan error {
 		Addr:    cfg.SrvAddr,
 		Handler: handler.Router,
 	}
+	
 	go func() {
 		if err := s.httpServer.ListenAndServe(); err != http.ErrServerClosed {
 			serverErr <- err

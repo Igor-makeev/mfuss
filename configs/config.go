@@ -8,6 +8,7 @@ import (
 
 	"github.com/caarlos0/env"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 // Config - тип структуры конфигурации приложения.
@@ -24,6 +25,17 @@ type Config struct {
 func NewConfig() *Config {
 	// Инизциализируем конфиг.
 	var cfg Config
+
+	viper.AddConfigPath("./configs")
+	viper.SetConfigName("config")
+	viper.SetConfigType("json")
+	viper.ReadInConfig()
+
+	cfg.SrvAddr = viper.GetString("conf.server_address")
+	cfg.BaseURL = viper.GetString("conf.base_url")
+	cfg.FileStoragePath = viper.GetString("conf.file_storage_path")
+	cfg.DBDSN = viper.GetString("conf.database_dsn")
+	cfg.EnableHTTPS = viper.GetBool("conf.enable_https")
 
 	flag.StringVar(&cfg.SrvAddr, "a", ":8080", "server addres to listen on")
 	flag.StringVar(&cfg.BaseURL, "b", "http://localhost:8080", "shortener base URL")

@@ -22,7 +22,7 @@ func (s *Server) Run(cfg *configs.Config, handler *handler.Handler) chan error {
 	s.httpServer = &http.Server{
 		Addr:      cfg.SrvAddr,
 		Handler:   handler.Router,
-		TLSConfig: cfg.TlsConf,
+		TLSConfig: cfg.TLSConf,
 	}
 	if cfg.EnableHTTPS {
 		go func() {

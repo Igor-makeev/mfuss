@@ -17,7 +17,7 @@ type Config struct {
 	FileStoragePath string `env:"FILE_STORAGE_PATH" `
 	DBDSN           string `env:"DATABASE_DSN"`
 	EnableHTTPS     bool   `env:"ENABLE_HTTPS"`
-	TlsConf         *tls.Config
+	TLSConf         *tls.Config
 }
 
 // Конструктор конфигов
@@ -44,7 +44,7 @@ func NewConfig() *Config {
 			log.Fatal(err)
 		}
 
-		cfg.TlsConf = &tls.Config{Certificates: []tls.Certificate{cert}}
+		cfg.TLSConf = &tls.Config{Certificates: []tls.Certificate{cert}}
 	}
 	logrus.Printf("env variable SERVER_ADDRESS=%v", cfg.SrvAddr)
 	logrus.Printf("env variable BASE_URL=%v", cfg.BaseURL)

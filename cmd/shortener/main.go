@@ -50,12 +50,12 @@ func main() {
 	serverErrChan := srv.Run(cfg, handler)
 
 	signals := make(chan os.Signal, 1)
-	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
 	select {
 	case <-signals:
 
-		fmt.Println("main: got terminate signal. Shutting down...")
+		fmt.Println("main: got shutdown signal. Shutting down...")
 		if service.Close(ctx); err != nil {
 			logrus.Errorf("error occured on closing service: %s", err.Error())
 		}

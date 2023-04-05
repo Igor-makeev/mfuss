@@ -7,6 +7,8 @@ import (
 
 	"net/http"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 // Структура Сервера
@@ -18,10 +20,19 @@ type Server struct {
 func (s *Server) Run(cfg *configs.Config, handler *handler.Handler) chan error {
 	serverErr := make(chan error)
 	s.httpServer = &http.Server{
-		Addr:    cfg.SrvAddr,
-		Handler: handler.Router,
+		Addr:      cfg.SrvAddr,
+		Handler:   handler.Router,
+		TLSConfig: cfg.TlsConf,
 	}
-	
+	if cfg.EnableHTTPS {
+		go func() {
+			logrus.Println("HTTPS Run")
+			if err := s.httpServer.ListenAndServeTLS("", ""); err != http.ErrServerClosed {
+				serverErr <- err
+			}
+		}()
+		return serverErr
+	}
 	go func() {
 		if err := s.httpServer.ListenAndServe(); err != http.ErrServerClosed {
 			serverErr <- err

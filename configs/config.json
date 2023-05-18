@@ -4,6 +4,7 @@
         "base_url": "",
         "file_storage_path": "",
         "database_dsn": "",
-        "enable_https": false
+        "enable_https": false,
+        "trusted_subnet": ""
     }
 }

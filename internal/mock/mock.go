@@ -74,6 +74,11 @@ func (store *StorageMock) Ping(ctx context.Context) error {
 }
 
 // Мок
+func (store *StorageMock) GetStats(ctx context.Context) (entity.Stats, error) {
+	return entity.Stats{}, nil
+}
+
+// Мок
 type PersistentStorageMock struct {
 }
 

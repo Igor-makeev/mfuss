@@ -32,6 +32,12 @@ type URLBatchResponse struct {
 	URL      string `json:"short_url"`
 }
 
+// Тип ответа статы
+type Stats struct {
+	URLs  int `json:"urls"`
+	Users int `json:"users"`
+}
+
 // Функция проставляющая флаг удаления
 func (s *ShortURL) SetDeleteFlag() {
 	s.IsDeleted = true

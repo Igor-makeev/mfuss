@@ -150,3 +150,20 @@ func (ms *MemoryStorage) setDeletFlag(ID string) {
 	}
 
 }
+
+// получить статы
+func (ms *MemoryStorage) GetStats(ctx context.Context) (entity.Stats, error) {
+	ms.Lock()
+	defer ms.Unlock()
+	users := make(map[string]bool)
+
+	for _, v := range ms.URLStore {
+		users[v.UserID] = true
+	}
+
+	return entity.Stats{
+		URLs:  int(len(ms.URLStore)),
+		Users: int(len(users)),
+	}, nil
+
+}

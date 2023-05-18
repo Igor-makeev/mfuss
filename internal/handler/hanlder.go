@@ -36,6 +36,7 @@ func NewHandler(service *service.Service) *Handler {
 			api.POST("/shorten", GzipUnpack(), handler.PostJSONHandler)
 			api.GET("/user/urls", handler.GetUserURLs)
 			api.DELETE("/user/urls", handler.checkURLSID, handler.DeleteUrls)
+			api.GET("/internal/stats", handler.Getstats)
 		}
 	}
 

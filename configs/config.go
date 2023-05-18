@@ -22,6 +22,8 @@ type Config struct {
 	TrustedSubnet       *net.IPNet
 	EnableHTTPS         bool `env:"ENABLE_HTTPS"`
 	TLSConf             *tls.Config
+	GRPCAdress          string
+	CookieKey           []byte
 }
 
 // Конструктор конфигов
@@ -57,7 +59,8 @@ func NewConfig() *Config {
 	if cfg.trustedSubnetstring != "" {
 		cfg.parseAndSaveSubnet(cfg.trustedSubnetstring)
 	}
-
+	cfg.CookieKey = append(cfg.CookieKey, 14, 180, 4, 236, 208, 28, 133, 5, 116, 159, 137, 123, 80, 176, 209, 179)
+	cfg.GRPCAdress = ":3200"
 	if cfg.EnableHTTPS {
 
 		cert, err := tls.LoadX509KeyPair("cert.pem", "key.pem") //загрузка серверного сертификата и ключа

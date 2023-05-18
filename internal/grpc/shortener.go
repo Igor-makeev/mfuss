@@ -13,11 +13,13 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
+// сервер сокращалка
 type GRPCServer struct {
 	pb.UnimplementedShortenerServer
 	service *service.Service
 }
 
+// конструктор сервера сокращалки
 func NewGRPCServer(s *service.Service) *GRPCServer {
 	return &GRPCServer{service: s}
 }

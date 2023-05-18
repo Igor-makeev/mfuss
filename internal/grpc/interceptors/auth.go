@@ -14,6 +14,7 @@ import (
 	"mfuss/internal/grpc/auth"
 )
 
+// Кастомный тип что бы избежать коллизий
 type ContextKey string
 
 // AuthUnaryInterceptor отвечает за аутентификацию grpc-клиентов.

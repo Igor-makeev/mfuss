@@ -167,6 +167,7 @@ func (ps *PostgresStorage) MarkAsDeleted(ctx context.Context, arr []string) erro
 	return nil
 }
 
+// Получить статы
 func (ps *PostgresStorage) GetStats(ctx context.Context) (entity.Stats, error) {
 	ps.Lock()
 	defer ps.Unlock()

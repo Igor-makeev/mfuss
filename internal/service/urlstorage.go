@@ -64,6 +64,7 @@ func (uss *URLStorageService) Close(ctx context.Context) error {
 	return uss.repo.Close(ctx)
 }
 
+// получить статы
 func (uss *URLStorageService) GetStats(ctx context.Context) (entity.Stats, error) {
 	return uss.repo.GetStats(ctx)
 }

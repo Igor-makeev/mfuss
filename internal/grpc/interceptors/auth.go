@@ -14,6 +14,8 @@ import (
 	"mfuss/internal/grpc/auth"
 )
 
+type ContextKey string
+
 // AuthUnaryInterceptor отвечает за аутентификацию grpc-клиентов.
 func (i interceptors) AuthUnaryInterceptor(ctx context.Context,
 	req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler,
@@ -46,6 +48,6 @@ func (i interceptors) AuthUnaryInterceptor(ctx context.Context,
 		}
 	}
 
-	ctx = context.WithValue(ctx, "userID", user)
+	ctx = context.WithValue(ctx, ContextKey("userID"), user)
 	return handler(ctx, req)
 }

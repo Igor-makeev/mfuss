@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"flag"
 	"log"
+	"net"
 
 	"github.com/caarlos0/env"
 	"github.com/sirupsen/logrus"
@@ -13,12 +14,16 @@ import (
 
 // Config - тип структуры конфигурации приложения.
 type Config struct {
-	SrvAddr         string `env:"SERVER_ADDRESS" `
-	BaseURL         string `env:"BASE_URL" `
-	FileStoragePath string `env:"FILE_STORAGE_PATH" `
-	DBDSN           string `env:"DATABASE_DSN"`
-	EnableHTTPS     bool   `env:"ENABLE_HTTPS"`
-	TLSConf         *tls.Config
+	SrvAddr             string `env:"SERVER_ADDRESS" `
+	BaseURL             string `env:"BASE_URL" `
+	FileStoragePath     string `env:"FILE_STORAGE_PATH" `
+	DBDSN               string `env:"DATABASE_DSN"`
+	trustedSubnetstring string `env:"TRUSTED_SUBNET"`
+	TrustedSubnet       *net.IPNet
+	EnableHTTPS         bool `env:"ENABLE_HTTPS"`
+	TLSConf             *tls.Config
+	GRPCAdress          string
+	CookieKey           []byte
 }
 
 // Конструктор конфигов
@@ -35,12 +40,14 @@ func NewConfig() *Config {
 	cfg.BaseURL = viper.GetString("conf.base_url")
 	cfg.FileStoragePath = viper.GetString("conf.file_storage_path")
 	cfg.DBDSN = viper.GetString("conf.database_dsn")
+	cfg.trustedSubnetstring = viper.GetString("conf.trusted_subnet")
 	cfg.EnableHTTPS = viper.GetBool("conf.enable_https")
 
 	flag.StringVar(&cfg.SrvAddr, "a", ":8080", "server addres to listen on")
 	flag.StringVar(&cfg.BaseURL, "b", "http://localhost:8080", "shortener base URL")
 	flag.StringVar(&cfg.FileStoragePath, "f", "file_storage.txt", "path to storage file")
 	flag.StringVar(&cfg.DBDSN, "d", "", "database adress")
+	flag.StringVar(&cfg.trustedSubnetstring, "t", "", "trusted subnet")
 	flag.BoolVar(&cfg.EnableHTTPS, "s", false, "https")
 
 	flag.Parse()
@@ -49,6 +56,11 @@ func NewConfig() *Config {
 	if err != nil {
 		log.Fatal("failed to parse config environment variables")
 	}
+	if cfg.trustedSubnetstring != "" {
+		cfg.parseAndSaveSubnet(cfg.trustedSubnetstring)
+	}
+	cfg.CookieKey = append(cfg.CookieKey, 14, 180, 4, 236, 208, 28, 133, 5, 116, 159, 137, 123, 80, 176, 209, 179)
+	cfg.GRPCAdress = ":3200"
 	if cfg.EnableHTTPS {
 
 		cert, err := tls.LoadX509KeyPair("cert.pem", "key.pem") //загрузка серверного сертификата и ключа
@@ -63,6 +75,17 @@ func NewConfig() *Config {
 	logrus.Printf("env variable FILE_STORAGE_PATH=%v", cfg.FileStoragePath)
 	logrus.Printf("env variable DATABASE_DSN=%v", cfg.DBDSN)
 	logrus.Printf("env variable ENABLE_HTTPS=%v", cfg.EnableHTTPS)
+	logrus.Printf("env variable TRUSTED_SUBNET=%v", cfg.TrustedSubnet)
 
 	return &cfg
+}
+
+func (cfg *Config) parseAndSaveSubnet(s string) (ok bool) {
+	_, n, err := net.ParseCIDR(s)
+	if err != nil {
+		return false
+	}
+
+	cfg.TrustedSubnet = n
+	return true
 }

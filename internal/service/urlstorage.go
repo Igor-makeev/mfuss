@@ -8,6 +8,7 @@ import (
 
 // интерфейс сервиса хранилища ссылок
 type URLStorager interface {
+	GetStats(ctx context.Context) (entity.Stats, error)
 	SaveURL(ctx context.Context, input, userID string) (string, error)
 	GetAllURLs(ctx context.Context, userID string) []entity.ShortURL
 	GetShortURL(ctx context.Context, id, userID string) (sURL entity.ShortURL, er error)
@@ -61,4 +62,9 @@ func (uss *URLStorageService) Ping(ctx context.Context) error {
 // закрыть
 func (uss *URLStorageService) Close(ctx context.Context) error {
 	return uss.repo.Close(ctx)
+}
+
+// получить статы
+func (uss *URLStorageService) GetStats(ctx context.Context) (entity.Stats, error) {
+	return uss.repo.GetStats(ctx)
 }

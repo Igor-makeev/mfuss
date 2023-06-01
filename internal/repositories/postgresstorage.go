@@ -166,3 +166,18 @@ func (ps *PostgresStorage) MarkAsDeleted(ctx context.Context, arr []string) erro
 	}
 	return nil
 }
+
+// Получить статы
+func (ps *PostgresStorage) GetStats(ctx context.Context) (entity.Stats, error) {
+	ps.Lock()
+	defer ps.Unlock()
+	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+	//Алокация
+	var stats entity.Stats
+	if err := ps.DB.QueryRow(ctx, `SELECT COUNT(id) AS links_count, COUNT(DISTINCT User_ID) AS users_count FROM links`).Scan(&stats.URLs, &stats.Users); err != nil {
+		return stats, err
+	}
+
+	return stats, nil
+}

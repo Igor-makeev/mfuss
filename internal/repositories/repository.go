@@ -11,6 +11,7 @@ import (
 
 // Интерфейс хранилища ссылок
 type URLStorager interface {
+	GetStats(ctx context.Context) (entity.Stats, error)
 	SaveURL(ctx context.Context, input, userID string) (string, error)
 	GetAllURLs(ctx context.Context, userID string) []entity.ShortURL
 	GetShortURL(ctx context.Context, id, userID string) (sURL entity.ShortURL, er error)

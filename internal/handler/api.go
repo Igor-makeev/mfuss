@@ -8,6 +8,7 @@ import (
 	"mfuss/internal/entity"
 	errorsEntity "mfuss/internal/entity/errors"
 	"mfuss/internal/utilits"
+	"net"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -110,10 +111,30 @@ func (h *Handler) DeleteUrls(c *gin.Context) {
 
 	inputArray, err := getUrlsArray(c)
 	if err != nil {
+
 		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	h.Service.Queue.Write(inputArray)
 	c.Status(http.StatusAccepted)
+}
+
+// Getstats = Хэндлер возвращающий количество пользователей сервиса и количество сокращённых URL
+func (h *Handler) Getstats(c *gin.Context) {
+
+	if h.Service.Cfg.TrustedSubnet != nil {
+		realIP := c.Request.Header.Get("X-Real-IP")
+		if !h.Service.Cfg.TrustedSubnet.Contains(net.ParseIP(realIP)) {
+			http.Error(c.Writer, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+			return
+		}
+	}
+
+	stats, err := h.Service.GetStats(c.Request.Context())
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusBadGateway)
+		return
+	}
+	c.JSON(http.StatusOK, stats)
 }

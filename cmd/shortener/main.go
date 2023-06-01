@@ -5,10 +5,15 @@ import (
 	"fmt"
 	"log"
 	"mfuss/configs"
+	shortener "mfuss/internal/grpc"
+	"mfuss/internal/grpc/auth"
+	"mfuss/internal/grpc/interceptors"
 	"mfuss/internal/handler"
 	"mfuss/internal/repositories"
 	"mfuss/internal/server"
 	"mfuss/internal/service"
+	pb "mfuss/proto"
+	"net"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
@@ -16,6 +21,7 @@ import (
 	"syscall"
 
 	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 )
 
 var (
@@ -42,6 +48,23 @@ func main() {
 	service.Queue.Run(ctx)
 
 	handler := handler.NewHandler(service)
+	authenticator := auth.New(cfg)
+	go func() {
+		ln, grpcErr := net.Listen("tcp", cfg.GRPCAdress)
+		if grpcErr != nil {
+			log.Printf("listen grpc port error: %s\n", grpcErr)
+			return
+		}
+
+		i := interceptors.New(authenticator)
+		g := grpc.NewServer(grpc.UnaryInterceptor(i.AuthUnaryInterceptor))
+		pb.RegisterShortenerServer(g, shortener.NewGRPCServer(service))
+
+		if grpcErr = g.Serve(ln); grpcErr != nil {
+			log.Printf("gRPC server error: %s\n", grpcErr)
+			return
+		}
+	}()
 	go func() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
